@@ -344,7 +344,7 @@
    ========================================================= */
 const API = 'https://script.google.com/macros/s/AKfycbyKfrfeTPq8MrBbIGsZp54_6l8yPKWDV6omrG7GCBlrfpzkTktzhdd8gUBlSdFivvGU/exec';
 const ATUALIZAR_A_CADA_MIN = 5;
-const VERSAO = '12';
+const VERSAO = '13';
 
 /* ---------- utilidades ---------- */
 const $ = s => document.querySelector(s);
@@ -581,6 +581,10 @@ function normalizar(j){
     dProposta: parseD(c['Data da proposta']), dCheckin: parseD(c['Check-in em']), precisao: c['Check-in precisão (m)'],
     vigencia: Number(c['Vigência do contrato (meses)']) || '', revisoes: Number(c['Revisões da proposta']) || 0,
   }));
+  // mesmo CPF repetido na planilha: mostra uma vez só (se alguma linha está aprovada, vale aprovado)
+  const unicos = []; vendedores.forEach(v => { const x = unicos.find(u => u.cpf === v.cpf);
+    if (!x) return unicos.push(v); if (v.situacao === 'Aprovado' || x.situacao === 'Aprovado') x.situacao = 'Aprovado'; else if (v.situacao === 'Bloqueado') x.situacao = 'Bloqueado'; });
+  vendedores.length = 0; unicos.forEach(v => vendedores.push(v));
   // vendedores que só aparecem nos clientes
   clientes.forEach(c => { if (c.vcpf && !vendedores.some(v => v.cpf === c.vcpf)) vendedores.push({ cpf: c.vcpf, nome: c.vendedor }); });
   vendedores.sort((a, b) => String(a.nome).localeCompare(String(b.nome)));
@@ -689,7 +693,9 @@ function abrirVendedores(){
       const v = dados.vendedores.find(x => x.cpf === b.dataset.cpf), sit = b.dataset.sit;
       if (sit === 'Bloqueado' && !confirm(`Bloquear ${v.nome}? O app dele para de enviar dados (o que já está na planilha continua).`)) return;
       b.disabled = true; b.textContent = '…';
-      try { await api('painelVendedorSituacao', { dados: { cpf: v.cpf, situacao: sit } }); v.situacao = sit; toast(`${v.nome}: ${sit === 'Aprovado' ? 'aprovado' : 'bloqueado'}`); desenhar(); alertaVendedores(); }
+      try { await api('painelVendedorSituacao', { dados: { cpf: v.cpf, situacao: sit } });
+        dados.vendedores.filter(x => x.cpf === v.cpf).forEach(x => x.situacao = sit); // todas as linhas desse CPF
+        toast(`${v.nome}: ${sit === 'Aprovado' ? 'aprovado' : 'bloqueado'}`); desenhar(); alertaVendedores(); carregar(true); }
       catch (e) { toast('Erro: ' + e.message); b.disabled = false; }
     });
   };
