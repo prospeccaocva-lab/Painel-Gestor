@@ -136,6 +136,8 @@
   .rgh{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
   .rrow{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--grid);font-size:14px}
   .rrow .rf{width:90px;font-weight:600} .rrow .rv{flex:1;color:var(--muted)}
+  .pprazo{background:#f5f8f3;border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:13.5px;display:flex;flex-direction:column;gap:6px}
+  .pprazo input{padding:7px 9px;border-radius:9px;border:1.5px solid var(--line);font-size:14px} .pprazo small{color:var(--muted)}
   .pvig{background:var(--lime-soft);border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:13.5px;display:flex;flex-direction:column;gap:4px}
   .pvig span{display:flex;flex-wrap:wrap;gap:6px;align-items:center} .pvig em{font-style:normal;background:#fff;border-radius:8px;padding:3px 8px;font-size:12.5px}
   .pvig small{color:var(--muted)}
@@ -335,7 +337,7 @@
    ========================================================= */
 const API = 'https://script.google.com/macros/s/AKfycbyKfrfeTPq8MrBbIGsZp54_6l8yPKWDV6omrG7GCBlrfpzkTktzhdd8gUBlSdFivvGU/exec';
 const ATUALIZAR_A_CADA_MIN = 5;
-const VERSAO = '9';
+const VERSAO = '11';
 
 /* ---------- utilidades ---------- */
 const $ = s => document.querySelector(s);
@@ -379,73 +381,110 @@ const numOuVazio = v => v === '' || v === null || v === undefined || isNaN(Numbe
 const FREQS = ['1x ao mês', '2x ao mês', 'Semanal', 'Outros'];
 const semAcento = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 const freqDe = c => FREQS.slice(0, 3).includes(c.freq) ? c.freq : 'Outros';
-function regraPara(cidade, freq, lista = dados.parametros){
-  const pad = lista.find(r => !r.cidade && r.freq === freq) || {}, cid = lista.find(r => r.cidade && semAcento(r.cidade) === semAcento(cidade) && r.freq === freq) || {};
+const hojeYmd = () => ymd(new Date());
+const somaDias = (y, n) => { const [a, m, d] = y.split('-').map(Number); return ymd(new Date(a, m - 1, d + n)); };
+const valeEm = (r, dia) => (!r.inicio || r.inicio <= dia) && (!r.fim || dia <= r.fim);
+const maisRecente = rs => rs.sort((a, b) => String(b.inicio).localeCompare(String(a.inicio)))[0] || {};
+// Regra vigente numa data: parâmetro da cidade (campanha) por cima do padrão, só se válido naquela data
+function regraPara(cidade, freq, lista = dados.parametros, dia = hojeYmd()){
+  const pad = maisRecente(lista.filter(r => !r.cidade && r.freq === freq && valeEm(r, dia)));
+  const cid = maisRecente(lista.filter(r => r.cidade && semAcento(r.cidade) === semAcento(cidade) && r.freq === freq && valeEm(r, dia)));
   const campo = k => cid[k] !== undefined && cid[k] !== '' ? cid[k] : (pad[k] !== undefined ? pad[k] : '');
-  const r = { valor: campo('valor'), franquia: campo('franquia'), excedente: campo('excedente'), cidade: Object.keys(cid).length ? cid.cidade : '' };
+  const r = { valor: campo('valor'), franquia: campo('franquia'), excedente: campo('excedente'), cidade: cid.cidade || '', inicioCid: cid.inicio || '', fimCid: cid.fim || '' };
   return r.valor === '' && r.franquia === '' && r.excedente === '' ? null : r;
 }
-// Retorna null (sem proposta ou sem regra) ou { ok, falhas: [texto], regra }
+// Data de referência = data da proposta (senão visita). Parâmetro criado depois dessa data não afeta a proposta/contrato.
+const dataRef = c => ymd(c.dProposta || c.dVisita || c.dContrato || new Date());
 function avaliar(c, lista){
   if (!c.preco || !dados) return null;
-  const r = regraPara(c.cidade, freqDe(c), lista || dados.parametros); if (!r) return null;
+  const r = regraPara(c.cidade, freqDe(c), lista || dados.parametros, dataRef(c)); if (!r) return null;
   const falhas = [];
   if (r.valor !== '' && c.preco < r.valor) falhas.push(`Valor ${brl(c.preco)} abaixo do mínimo de ${brl(r.valor)}`);
   if (r.franquia !== '' && Number(c.franquia || 0) < r.franquia) falhas.push(`Franquia ${Number(c.franquia || 0)} kg abaixo do mínimo de ${r.franquia} kg`);
   if (r.excedente !== '' && Number(c.excedente || 0) < r.excedente) falhas.push(`Excedente ${brl(c.excedente || 0)}/kg abaixo do mínimo de ${brl(r.excedente)}/kg`);
-  return { ok: !falhas.length, falhas, regra: r };
+  return { ok: !falhas.length, falhas, regra: r, dia: dataRef(c) };
 }
 const foraParam = c => { const a = avaliar(c); return !!(a && !a.ok); };
 
+const brD = y => y ? y.split('-').reverse().join('/') : '';
+// Consolida as edições em versões: alteração encerra a versão antiga ontem e cria outra a partir de hoje
+function consolidarParametros(originais, trabalho){
+  const hoje = hojeYmd(), ontem = somaDias(hoje, -1), agora = new Date().toISOString(), out = [];
+  const iguais = (a, b) => ['valor', 'franquia', 'excedente'].every(k => String(a[k]) === String(b[k]));
+  originais.forEach((o, i) => {
+    const ativo = !o.fim || o.fim >= hoje, t = trabalho.find(x => x._orig === i);
+    if (!ativo) return out.push(o);                                        // histórico: fica como está
+    if (!t) { if (o.inicio && o.inicio < hoje) out.push({ ...o, fim: ontem }); return; }   // excluído: encerra (ou apaga se é de hoje)
+    if (iguais(o, t)) return out.push({ ...o, inicio: t.inicio || o.inicio, fim: t.fim || '' });
+    if (!o.inicio || o.inicio >= hoje) return out.push({ ...t, _orig: undefined, atualizadoEm: agora });
+    out.push({ ...o, fim: ontem });
+    out.push({ ...t, _orig: undefined, inicio: t.inicio && t.inicio > hoje ? t.inicio : hoje, atualizadoEm: agora });
+  });
+  trabalho.filter(t => t._orig === undefined).forEach(t => out.push({ ...t, inicio: t.inicio || hoje, atualizadoEm: agora }));
+  return out.map(({ _orig, ...r }) => r);
+}
 function abrirParametros(){
-  let trabalho = dados.parametros.map(r => ({ ...r }));
+  const hoje = hojeYmd(), originais = dados.parametros.map(r => ({ ...r }));
+  // só as versões em vigor (ou futuras) aparecem para edição; o histórico fica guardado
+  let trabalho = originais.map((r, i) => ({ ...r, _orig: i })).filter(r => !r.fim || r.fim >= hoje);
   const cidadesDados = [...new Set(dados.clientes.map(c => String(c.cidade || '').trim()).filter(Boolean))];
   const bg = document.createElement('div'); bg.className = 'modal-bg';
   bg.innerHTML = `<div class="modal modal-lg"><h3>⚙ Parâmetros comerciais</h3>
     <div class="pscope"><label>Aplicar em</label><select data-scope></select><input data-nova placeholder="Nome da cidade" class="hidden"></div>
     <div data-vig></div>
+    <div data-prazo></div>
     <div data-tab></div>
     <div data-cids class="pcids"></div>
     <div class="mact"><button class="btn btn-red" data-reset>Redefinir todos os parâmetros</button><span style="flex:1"></span><button class="btn btn-soft" data-x>Cancelar</button><button class="btn btn-green" data-s>Salvar parâmetros</button></div></div>`;
   document.body.appendChild(bg);
   let escopo = '';
   const sel = bg.querySelector('[data-scope]'), nova = bg.querySelector('[data-nova]');
+  const doEscopo = () => trabalho.filter(r => semAcento(r.cidade) === semAcento(escopo));
   const montarEscopos = () => {
     const comRegra = [...new Set(trabalho.filter(r => r.cidade).map(r => r.cidade))];
     const todas = [...new Set([...comRegra, ...cidadesDados])].sort((a, b) => a.localeCompare(b));
-    sel.innerHTML = `<option value="">Todas as cidades (padrão)</option>` + todas.map(c => `<option value="${esc(c)}">${esc(c)}${comRegra.includes(c) ? ' ★ campanha' : ''}</option>`).join('') + `<option value="__nova">+ Outra cidade…</option>`;
+    sel.innerHTML = `<option value="">Todas as cidades (padrão)</option>` + todas.map(c => `<option value="${esc(c)}">${esc(c)}${comRegra.includes(c) ? ' ★ condição especial' : ''}</option>`).join('') + `<option value="__nova">+ Outra cidade…</option>`;
     sel.value = escopo;
-    bg.querySelector('[data-cids]').innerHTML = comRegra.length ? `<b>Cidades com parâmetro próprio:</b> ${comRegra.map(c => `<button class="chip s-lime" data-ir="${esc(c)}">${esc(c)}</button>`).join(' ')}` : '<span>Nenhuma cidade com parâmetro próprio.</span>';
+    bg.querySelector('[data-cids]').innerHTML = comRegra.length ? `<b>Cidades com condição especial:</b> ${comRegra.map(c => { const r = trabalho.find(x => x.cidade === c);
+      return `<button class="chip s-lime" data-ir="${esc(c)}">${esc(c)}${r && r.fim ? ' até ' + brD(r.fim) : ''}</button>`; }).join(' ')}` : '<span>Nenhuma cidade com condição especial.</span>';
     bg.querySelectorAll('[data-ir]').forEach(b => b.onclick = () => { guardar(); escopo = b.dataset.ir; montarEscopos(); tabela(); });
   };
   const tabela = () => {
-    const pad = f => trabalho.find(r => !r.cidade && r.freq === f) || {};
-    const lin = f => trabalho.find(r => semAcento(r.cidade) === semAcento(escopo) && r.freq === f) || {};
-    const campo = (f, k, pre, suf) => { const v = lin(f)[k], ph = escopo && pad(f)[k] !== undefined && pad(f)[k] !== '' ? `padrão ${pad(f)[k]}` : '—';
+    const pad = f => maisRecente(trabalho.filter(r => !r.cidade && r.freq === f));
+    const lin = f => maisRecente(doEscopo().filter(r => r.freq === f));
+    const campo = (f, k, pre, suf) => { const v = lin(f)[k], ph = escopo && pad(f)[k] !== undefined && pad(f)[k] !== '' ? String(pad(f)[k]).replace('.', ',') : '—';
       return `<td><div class="pin">${pre ? `<em>${pre}</em>` : ''}<input type="number" min="0" step="0.01" data-f="${f}" data-k="${k}" value="${v === undefined ? '' : v}" placeholder="${ph}">${suf ? `<em>${suf}</em>` : ''}</div></td>`; };
+    // prazo: padrão vale de hoje em diante; cidade pode ter período (campanha)
+    const ex = doEscopo()[0] || {};
+    bg.querySelector('[data-prazo]').innerHTML = escopo
+      ? `<div class="pprazo"><b>📅 Prazo da condição especial</b>
+          <span>de <input type="date" data-ini value="${ex.inicio || hoje}"> até <input type="date" data-fim value="${ex.fim || ''}"></span>
+          <small>Deixe "até" vazio para não ter prazo. Fora desse período, as propostas desta cidade seguem o padrão. Campos em cinza mostram o valor padrão.</small></div>`
+      : `<div class="pprazo"><b>📅 Vigência</b><small>Alterações valem para propostas feitas a partir de hoje (${brD(hoje)}). Propostas e contratos anteriores continuam sendo avaliados pelos parâmetros da época.</small></div>`;
     bg.querySelector('[data-tab]').innerHTML = `<table class="ptab"><thead><tr><th>Frequência</th><th>Valor mínimo</th><th>Franquia mínima</th><th>Excedente mínimo</th></tr></thead><tbody>
       ${FREQS.map(f => `<tr><td><b>${f}</b></td>${campo(f, 'valor', 'R$', '/mês')}${campo(f, 'franquia', '', 'kg')}${campo(f, 'excedente', 'R$', '/kg')}</tr>`).join('')}</tbody></table>
-      ${escopo && trabalho.some(r => semAcento(r.cidade) === semAcento(escopo)) ? `<button class="lnk" style="margin-top:10px;background:var(--red-bg);color:#b53030" data-rm>Redefinir parâmetros de ${esc(escopo)}</button>` : ''}`;
-    // Resumo do que vale para a cidade escolhida (próprio ou padrão)
+      ${escopo && doEscopo().length ? `<button class="lnk" style="margin-top:10px;background:var(--red-bg);color:#b53030" data-rm>Redefinir parâmetros de ${esc(escopo)}</button>` : ''}`;
     const vig = bg.querySelector('[data-vig]');
-    if (!escopo) { vig.innerHTML = ''; }
+    if (!escopo) vig.innerHTML = '';
     else {
-      const proprio = trabalho.some(r => semAcento(r.cidade) === semAcento(escopo));
-      vig.innerHTML = `<div class="pvig"><b>${proprio ? `★ ${esc(escopo)} tem parâmetros próprios` : `${esc(escopo)} ainda usa o padrão`}</b>
+      const proprio = doEscopo().length > 0;
+      vig.innerHTML = `<div class="pvig"><b>${proprio ? `★ ${esc(escopo)} tem condição especial` : `${esc(escopo)} segue o padrão`}</b>
         <span>Vigente hoje: ${FREQS.map(f => { const r = regraPara(escopo, f, trabalho); return r ? `<em>${f}: ${r.valor !== '' ? brl(r.valor) : '—'} · ${r.franquia !== '' ? r.franquia + ' kg' : '—'} · ${r.excedente !== '' ? brl(r.excedente) + '/kg' : '—'}</em>` : ''; }).filter(Boolean).join('') || '<em>nenhum parâmetro</em>'}</span>
         <small>${proprio ? 'Campos vazios desta cidade seguem o padrão.' : 'Preencha abaixo só o que for diferente do padrão (ex.: campanha).'}</small></div>`;
     }
     const rm = bg.querySelector('[data-rm]');
-    if (rm) rm.onclick = () => { if (!confirm(`Redefinir ${escopo} para o padrão? Os parâmetros próprios desta cidade serão apagados ao salvar.`)) return;
+    if (rm) rm.onclick = () => { if (!confirm(`Redefinir ${escopo} para o padrão? A condição especial desta cidade será encerrada ao salvar.`)) return;
       trabalho = trabalho.filter(r => semAcento(r.cidade) !== semAcento(escopo)); montarEscopos(); tabela(); };
   };
   const guardar = () => {
+    const ini = bg.querySelector('[data-ini]')?.value || '', fim = bg.querySelector('[data-fim]')?.value || '';
     bg.querySelectorAll('[data-tab] input').forEach(i => {
       const f = i.dataset.f, k = i.dataset.k, v = i.value === '' ? '' : Math.max(0, +i.value);
-      let r = trabalho.find(x => semAcento(x.cidade) === semAcento(escopo) && x.freq === f);
-      if (!r) { if (v === '') return; r = { cidade: escopo, freq: f, valor: '', franquia: '', excedente: '' }; trabalho.push(r); }
+      let r = maisRecente(doEscopo().filter(x => x.freq === f)); if (!r.freq) r = null;
+      if (!r) { if (v === '') return; r = { cidade: escopo, freq: f, valor: '', franquia: '', excedente: '', inicio: '', fim: '' }; trabalho.push(r); }
       r[k] = v;
     });
+    if (escopo) doEscopo().forEach(r => { r.inicio = ini || hoje; r.fim = fim && fim >= (ini || hoje) ? fim : ''; });
     trabalho = trabalho.filter(r => r.valor !== '' || r.franquia !== '' || r.excedente !== '');
   };
   sel.onchange = () => {
@@ -458,31 +497,33 @@ function abrirParametros(){
   nova.onblur = () => nova.onkeydown({ key: 'Enter' });
   montarEscopos(); tabela();
   bg.onclick = e => { if (e.target === bg || e.target.closest('[data-x]')) bg.remove(); };
-  const gravar = async () => { await api('painelSalvarParametros', { dados: { parametros: trabalho } }); dados.parametros = trabalho.map(r => ({ ...r })); };
+  const gravar = async () => { const final = consolidarParametros(originais, trabalho);
+    await api('painelSalvarParametros', { dados: { parametros: final } }); dados.parametros = final; };
 
-  // ----- Redefinir: lista de todos os parâmetros por cidade, com exclusão imediata -----
+  // ----- Redefinir: lista dos parâmetros em vigor, por cidade -----
   bg.querySelector('[data-reset]').onclick = () => {
     guardar();
     const sub = document.createElement('div'); sub.className = 'modal-bg';
     const desenhar = () => {
       const grupos = [...new Set(trabalho.map(r => r.cidade))].sort((a, b) => (a ? 1 : 0) - (b ? 1 : 0) || a.localeCompare(b));
       const fmt = r => `${r.valor !== '' ? brl(r.valor) + '/mês' : '—'} · ${r.franquia !== '' ? r.franquia + ' kg' : '—'} · ${r.excedente !== '' ? brl(r.excedente) + '/kg' : '—'}`;
+      const prazo = g => { const r = trabalho.find(x => x.cidade === g) || {}; return g ? `de ${brD(r.inicio) || 'hoje'}${r.fim ? ' até ' + brD(r.fim) : ' · sem prazo'}` : `em vigor desde ${brD(maisRecente(trabalho.filter(x => !x.cidade)).inicio) || '—'}`; };
       sub.innerHTML = `<div class="modal modal-lg"><h3>Redefinir parâmetros</h3>
-        <p>Parâmetros cadastrados, por cidade. A exclusão é gravada na hora.</p>
-        ${grupos.length ? grupos.map(g => `<div class="rgrp"><div class="rgh"><b>${g ? esc(g) : 'Todas as cidades (padrão)'}</b>
+        <p>Parâmetros em vigor, por cidade. Ao excluir, o parâmetro é encerrado hoje: propostas antigas continuam avaliadas por ele.</p>
+        ${grupos.length ? grupos.map(g => `<div class="rgrp"><div class="rgh"><b>${g ? esc(g) : 'Todas as cidades (padrão)'} <small style="font-weight:500;color:var(--muted)">${prazo(g)}</small></b>
             <button class="btn-mini red" data-delc="${esc(g)}">Excluir ${g ? 'todos desta cidade' : 'todo o padrão'}</button></div>
           ${FREQS.filter(f => trabalho.some(r => r.cidade === g && r.freq === f)).map(f => { const r = trabalho.find(x => x.cidade === g && x.freq === f);
             return `<div class="rrow"><span class="rf">${f}</span><span class="rv">${fmt(r)}</span><button class="btn-mini" data-delf="${esc(f)}" data-cid="${esc(g)}">Excluir</button></div>`; }).join('')}</div>`).join('')
-          : '<div class="empty">Nenhum parâmetro cadastrado.</div>'}
+          : '<div class="empty">Nenhum parâmetro em vigor.</div>'}
         ${grupos.length ? `<button class="btn btn-red" data-all style="margin-top:14px">Excluir TODOS os parâmetros</button>` : ''}
         <div class="mact"><span style="flex:1"></span><button class="btn btn-green" data-ok>Concluir</button></div></div>`;
       const excluir = async (filtroFn, msg) => { if (!confirm(msg)) return;
         const antes = trabalho; trabalho = trabalho.filter(r => !filtroFn(r));
-        try { await gravar(); toast('Parâmetro excluído.'); } catch (e) { trabalho = antes; toast('Erro ao excluir: ' + e.message); }
-        desenhar(); montarEscopos(); tabela(); render(); };
-      sub.querySelectorAll('[data-delc]').forEach(b => b.onclick = () => excluir(r => r.cidade === b.dataset.delc, `Excluir todos os parâmetros de ${b.dataset.delc || 'padrão (todas as cidades)'}?`));
-      sub.querySelectorAll('[data-delf]').forEach(b => b.onclick = () => excluir(r => r.cidade === b.dataset.cid && r.freq === b.dataset.delf, `Excluir o parâmetro de ${b.dataset.delf} em ${b.dataset.cid || 'todas as cidades'}?`));
-      const all = sub.querySelector('[data-all]'); if (all) all.onclick = () => excluir(() => true, 'Excluir TODOS os parâmetros cadastrados? As propostas deixam de ser sinalizadas.');
+        try { await gravar(); toast('Parâmetro encerrado.'); bg.remove(); sub.remove(); render(); abrirParametros(); }
+        catch (e) { trabalho = antes; toast('Erro ao excluir: ' + e.message); desenhar(); } };
+      sub.querySelectorAll('[data-delc]').forEach(b => b.onclick = () => excluir(r => r.cidade === b.dataset.delc, `Encerrar todos os parâmetros de ${b.dataset.delc || 'padrão (todas as cidades)'}?`));
+      sub.querySelectorAll('[data-delf]').forEach(b => b.onclick = () => excluir(r => r.cidade === b.dataset.cid && r.freq === b.dataset.delf, `Encerrar o parâmetro de ${b.dataset.delf} em ${b.dataset.cid || 'todas as cidades'}?`));
+      const all = sub.querySelector('[data-all]'); if (all) all.onclick = () => excluir(() => true, 'Encerrar TODOS os parâmetros em vigor? Propostas novas deixam de ser sinalizadas.');
       sub.querySelector('[data-ok]').onclick = () => sub.remove();
     };
     desenhar(); document.body.appendChild(sub);
@@ -525,13 +566,17 @@ function normalizar(j){
     concorrente: c['Empresa concorrente'], contato: c['Contato'], telefone: c['Telefone'],
     endereco: c['Endereço'], numero: c['Número'], email: c['E-mail'], doc: c['CPF / CNPJ'], obs: c['Observações'], atendimento: c['Horário de atendimento'],
     dProposta: parseD(c['Data da proposta']), dCheckin: parseD(c['Check-in em']), precisao: c['Check-in precisão (m)'],
+    vigencia: Number(c['Vigência do contrato (meses)']) || '', revisoes: Number(c['Revisões da proposta']) || 0,
   }));
   // vendedores que só aparecem nos clientes
   clientes.forEach(c => { if (c.vcpf && !vendedores.some(v => v.cpf === c.vcpf)) vendedores.push({ cpf: c.vcpf, nome: c.vendedor }); });
   vendedores.sort((a, b) => String(a.nome).localeCompare(String(b.nome)));
   const metas = j.metas.map(m => ({ mes: String(m['Mês (AAAA-MM)']).slice(0, 7), cpf: digits(m['CPF do vendedor (vazio = todos)']), meta: Number(m['Meta de contratos']) || 0 }));
   const parametros = (j.parametros || []).map(r => ({ cidade: String(r['Cidade (vazio = todas)'] || '').trim(), freq: String(r['Frequência'] || ''),
-    valor: numOuVazio(r['Valor mínimo (R$)']), franquia: numOuVazio(r['Franquia mínima (kg/mês)']), excedente: numOuVazio(r['Excedente mínimo (R$/kg)']) })).filter(r => r.freq);
+    valor: numOuVazio(r['Valor mínimo (R$)']), franquia: numOuVazio(r['Franquia mínima (kg/mês)']), excedente: numOuVazio(r['Excedente mínimo (R$/kg)']),
+    atualizadoEm: String(r['Atualizado em'] || ''),
+    // parâmetros antigos (sem "Válido de") valem a partir da data em que foram gravados
+    inicio: String(r['Válido de'] || r['Atualizado em'] || '').slice(0, 10), fim: String(r['Válido até'] || '').slice(0, 10) })).filter(r => r.freq);
   return { vendedores, clientes, metas, parametros, geradoEm: parseD(j.geradoEm) };
 }
 
@@ -614,21 +659,11 @@ function alertaParametros(){
   el.innerHTML = `⚠ <b>${l.length}</b> contrato${l.length > 1 ? 's' : ''} fora do${l.length > 1 ? 's' : ''} parâmetro${l.length > 1 ? 's' : ''} – <a href="#" onclick="abrirForaParam();return false">Verificar</a>`;
 }
 function abrirForaParam(){
-  const l = contratosForaParam();
+  const w = window.open('', '_blank'); if (!w) return toast('Permita pop-ups deste site para abrir a lista.');
+  const lista = contratosForaParam(), soma = lista.reduce((s, c) => s + c.preco, 0);
   const filtros = [filtro.vend !== 'todos' ? (dados.vendedores.find(v => v.cpf === filtro.vend) || {}).nome : 'todos os vendedores', filtro.cid !== 'todas' ? filtro.cid : 'todas as cidades'].join(' · ');
-  try { localStorage.setItem('cv_painel_fora', JSON.stringify({ lista: l.map(paraGuardar), parametros: dados.parametros, filtros, em: Date.now() })); } catch (e) {}
-  window.open(location.pathname + '#fora-parametro', '_blank');
-}
-function renderForaParam(){
-  let pl = null; try { pl = JSON.parse(localStorage.getItem('cv_painel_fora')); } catch (e) {}
-  if (!pl) { $('#detalhe').innerHTML = '<div class="empty">Abra esta página pelo painel (link “Verificar”).</div>'; $('#detalhe').classList.remove('hidden'); return; }
-  const lista = pl.lista.map(c => { Object.keys(c).forEach(k => { if (/^d[A-Z]/.test(k) && c[k]) c[k] = parseD(c[k]); }); return c; });
-  dados = { parametros: pl.parametros || [], clientes: lista, vendedores: [], metas: [] };
-  document.title = 'Contratos fora do parâmetro';
-  $('#login').classList.add('hidden'); $('#app').classList.add('hidden');
-  const soma = lista.reduce((s, c) => s + c.preco, 0);
   const card = c => { const a = avaliar(c);
-    return `<button class="pc2 forap" style="--st:var(--r-contrato)" onclick="abrirDetalhe('${esc(c.id)}')" title="Abrir resumo em nova guia">
+    return `<button class="pc2 forap" style="--st:var(--r-contrato)" onclick="abrir('${esc(c.id)}')" title="Abrir resumo em nova guia">
       <div class="pc2-fora">⚠ Fora do parâmetro comercial${a && a.regra.cidade ? ' · campanha ' + esc(a.regra.cidade) : ''}</div>
       <div class="pc2-h"><span class="dot"></span><span class="st">Contrato fechado</span></div>
       <div class="pc2-n">${esc(c.nome)}</div>
@@ -636,16 +671,21 @@ function renderForaParam(){
       <div class="pc2-v">${brl(c.preco)}<small>/mês · ${esc(c.freq || '')}</small></div>
       <ul class="falhas">${a ? a.falhas.map(f => `<li>${f}</li>`).join('') : ''}</ul>
       <div class="pc2-f"><span>Contrato ${br(c.dContrato) || '—'}</span><span class="abrir">Resumo ↗</span></div></button>`; };
-  $('#detalhe').innerHTML = `
+  const corpo = `
     <header class="top"><div class="row"><img src="logo.svg" alt="Cheiro Verde Ambiental"><h1>Contratos fora do parâmetro</h1>
       <button class="tbtn" onclick="window.print()">🖨 Imprimir</button><button class="tbtn" onclick="window.close()">Fechar guia</button></div></header>
     <main class="det" style="max-width:1200px">
       <div class="dhero" style="--st:var(--orange)"><h2 style="margin-top:0">${lista.length} contrato${lista.length === 1 ? '' : 's'} fora do parâmetro</h2>
-        <p>${esc(pl.filtros)} · ${brl(soma)} por mês · todos os períodos</p></div>
+        <p>${esc(filtros)} · ${brl(soma)} por mês · cada contrato é comparado com o parâmetro vigente na data da proposta · clique num card para ver o resumo</p></div>
       ${lista.length ? `<div class="dgrid" style="padding:0">${lista.map(card).join('')}</div>` : '<div class="dok">✓ Nenhum contrato fora do parâmetro.</div>'}
     </main>
     <footer class="rodape">Painel da Gerência · Cheiro Verde Ambiental · <b>Versão ${VERSAO}</b></footer>`;
-  $('#detalhe').classList.remove('hidden');
+  // resumo de cada contrato já vai pronto dentro da guia (abre em outra guia ao clicar)
+  const det = Object.fromEntries(lista.map(c => [c.id, paginaAvulsa(c.nome + ' – Resumo', htmlDetalhe(c, dados.parametros))]));
+  const script = `const DET = ${JSON.stringify(det).replace(/<\//g, '<\\/')};
+    function abrir(id){ const w = window.open('', '_blank'); if (!w) { alert('Permita pop-ups para abrir o resumo.'); return; }
+      w.document.open(); w.document.write(DET[id]); w.document.close(); }`;
+  escreverGuia(w, paginaAvulsa('Contratos fora do parâmetro', corpo, script));
 }
 
 function kpis(cs){
@@ -1007,20 +1047,32 @@ function abrirLista(tipo){
    RESUMO DO CLIENTE (nova guia)
    ========================================================= */
 function paraGuardar(c){ const o = {}; Object.entries(c).forEach(([k, v]) => o[k] = v instanceof Date ? ymd(v) + 'T' + v.toTimeString().slice(0, 8) : v); return o; }
+// Monta uma página completa (com o mesmo visual) para abrir numa nova guia, sem recarregar o painel
+function paginaAvulsa(titulo, corpo, script = ''){
+  const base = location.href.split('#')[0].replace(/[^/]*$/, '');
+  const css = [...document.querySelectorAll('style')].map(x => x.textContent).join('\n');
+  return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<base href="${base}"><title>${esc(titulo)}</title><link rel="icon" href="icon-192.png">
+<style>${css}</style></head><body>${corpo.split('src="logo.svg"').join(`src="${LOGO_URI}"`)}<script>${script}
+  // fonte carregada sem travar a página
+  (function(){ var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700;800&display=swap'; document.head.appendChild(l); })();
+<\/script></body></html>`;
+}
+let LOGO_URI = 'logo.svg';
+fetch('logo.svg').then(r => r.text()).then(t => { LOGO_URI = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(t))); }).catch(() => {});
+function escreverGuia(w, html){ w.document.open(); w.document.write(html); w.document.close(); }
 function abrirDetalhe(id){
   const c = dados.clientes.find(x => String(x.id) === String(id)); if (!c) return;
-  try { localStorage.setItem('cv_painel_det_' + id, JSON.stringify({ c: paraGuardar(c), parametros: dados.parametros, em: Date.now() })); } catch (e) {}
-  window.open(location.pathname + '#cliente/' + encodeURIComponent(id), '_blank');
+  const w = window.open('', '_blank'); if (!w) return toast('Permita pop-ups deste site para abrir o resumo.');
+  escreverGuia(w, paginaAvulsa(c.nome + ' – Resumo', htmlDetalhe(c, dados.parametros)));
 }
-function renderDetalhe(c, parametros){
-  document.title = c.nome + ' – Resumo';
-  $('#login').classList.add('hidden'); $('#app').classList.add('hidden');
+function htmlDetalhe(c, parametros){
   const r = RES.find(x => x.k === c.res), st = r ? r.txt : (c.status === 'Visita em andamento' ? 'Visita em andamento' : 'A visitar');
   const corSt = r ? cor(c.res) : 'var(--lime)', diasProp = c.res === 'proposta' && c.dVisita ? Math.floor((new Date() - c.dVisita) / 864e5) : null;
   const av = avaliar(c, parametros);
   const lin = (rot, val) => val ? `<div class="dl"><span>${rot}</span><b>${val}</b></div>` : '';
   const tel = digits(c.telefone);
-  $('#detalhe').innerHTML = `
+  return `
     <header class="top"><div class="row"><img src="logo.svg" alt="Cheiro Verde Ambiental"><h1>Resumo do cliente</h1>
       <button class="tbtn" onclick="window.print()">🖨 Imprimir</button><button class="tbtn" onclick="window.close()">Fechar guia</button></div></header>
     <main class="det">
@@ -1036,14 +1088,15 @@ function renderDetalhe(c, parametros){
         </div>
       </div>
 
-      ${av && !av.ok ? `<div class="dalerta"><b>⚠ Proposta fora do parâmetro comercial${av.regra.cidade ? ' (campanha ' + esc(av.regra.cidade) + ')' : ''}</b><ul>${av.falhas.map(f => `<li>${f}</li>`).join('')}</ul></div>` : ''}
+      ${av && !av.ok ? `<div class="dalerta"><b>⚠ Proposta fora do parâmetro comercial vigente em ${brD(av.dia)}${av.regra.cidade ? ' (condição especial ' + esc(av.regra.cidade) + ')' : ''}</b><ul>${av.falhas.map(f => `<li>${f}</li>`).join('')}</ul></div>` : ''}
       ${av && av.ok ? `<div class="dok">✓ Proposta dentro do parâmetro comercial${av.regra.cidade ? ' (campanha ' + esc(av.regra.cidade) + ')' : ''}</div>` : ''}
 
       <div class="dgrid2">
         ${c.preco ? `<section class="dcard dprop"><h3>Proposta</h3>
           <div class="big">${brl(c.preco)}<small>/mês</small></div>
           <div class="kv4"><div><small>Frequência</small><b>${esc(c.freq || '—')}</b></div><div><small>Franquia</small><b>${c.franquia ? esc(c.franquia) + ' kg/mês' : '—'}</b></div>
-          <div><small>Excedente</small><b>${c.excedente ? brl(c.excedente) + '/kg' : '—'}</b></div><div><small>Valor por ano</small><b>${brl(c.preco * 12)}</b></div></div></section>` : ''}
+          <div><small>Excedente</small><b>${c.excedente ? brl(c.excedente) + '/kg' : '—'}</b></div><div><small>Vigência do contrato</small><b>${c.vigencia ? c.vigencia + ' meses' : '—'}</b></div>
+          <div><small>Valor total do contrato</small><b>${brl(c.preco * (c.vigencia || 12))}</b></div><div><small>Revisões da proposta</small><b>${c.revisoes || 0}</b></div></div></section>` : ''}
         <section class="dcard"><h3>Linha do tempo</h3>
           ${lin('Cadastrado em', br(c.dCadastro))}${lin('Check-in', c.dCheckin ? br(c.dCheckin) + ' ' + c.dCheckin.toTimeString().slice(0, 5) + (c.precisao ? ` (±${c.precisao} m)` : '') : '')}
           ${lin('Visita finalizada', br(c.dVisita))}${lin('Proposta', br(c.dProposta))}${lin('Contrato fechado', br(c.dContrato))}</section>
@@ -1056,7 +1109,11 @@ function renderDetalhe(c, parametros){
       </div>
     </main>
     <footer class="rodape">Painel da Gerência · Cheiro Verde Ambiental · <b>Versão ${VERSAO}</b></footer>`;
-  $('#detalhe').classList.remove('hidden');
+}
+function renderDetalhe(c, parametros){
+  document.title = c.nome + ' – Resumo';
+  $('#login').classList.add('hidden'); $('#app').classList.add('hidden');
+  $('#detalhe').innerHTML = htmlDetalhe(c, parametros); $('#detalhe').classList.remove('hidden');
 }
 async function abrirDetalheDaUrl(){
   const id = decodeURIComponent(location.hash.slice('#cliente/'.length));
@@ -1077,7 +1134,6 @@ let rsz; window.addEventListener('resize', () => { clearTimeout(rsz); rsz = setT
 /* ---------- início ---------- */
 document.querySelectorAll('.ver-num').forEach(e => e.textContent = VERSAO);
 if (location.hash.startsWith('#cliente/')) abrirDetalheDaUrl();
-else if (location.hash === '#fora-parametro') renderForaParam();
 else if (senha) iniciar(); else $('#login').classList.remove('hidden');
 </script>
 </body>
