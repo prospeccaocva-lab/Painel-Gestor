@@ -121,6 +121,11 @@
   .pc2:hover{transform:translateY(-2px);box-shadow:0 2px 4px rgba(20,50,30,.08),0 12px 28px rgba(20,50,30,.12)}
   .pc2:focus-visible{outline:3px solid var(--lime)}
   .pc2.parada{background:#fff8f8}
+  .nbadge{background:var(--red);color:#fff;border-radius:999px;padding:1px 7px;font-size:12px;margin-left:4px}
+  .vg{margin:16px 0 6px;font-size:14px} .vg small{color:var(--muted);font-weight:500}
+  .vrow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--grid);flex-wrap:wrap}
+  .vinfo{flex:1;min-width:220px} .vinfo small{display:block;color:var(--muted);font-size:12.5px}
+  .vbtns{display:flex;gap:6px} .btn-mini.ok{background:var(--ok-bg);color:var(--green-d)}
   .alertaParam{flex-basis:100%;background:var(--orange-bg);color:#6b3c00;border-radius:10px;padding:9px 14px;font-size:14px;font-weight:500;border-left:5px solid var(--orange)}
   .alertaParam a{color:#b53030;font-weight:800}
   .alertaParam.ok{background:var(--ok-bg);color:var(--green-d);border-left-color:var(--ok)}
@@ -270,6 +275,7 @@
     <button class="tbtn" onclick="carregar()">⟳ Atualizar</button>
     <button class="tbtn tbtn-lime" onclick="abrirMetas()">🎯 Definir metas</button>
     <button class="tbtn" onclick="abrirParametros()">⚙ Parâmetros</button>
+    <button class="tbtn" onclick="abrirVendedores()">👥 Vendedores <span class="nbadge hidden" id="nPend"></span></button>
     <button class="tbtn" onclick="sair()">Sair</button>
   </div></header>
 
@@ -285,6 +291,7 @@
       <span class="fg"><span class="lbl">Vendedor</span><select id="selVend"></select></span>
       <span class="fg"><span class="lbl">Cidade</span><select id="selCid"></select></span>
       <div class="alertaParam" id="alertaParam"></div>
+      <div class="alertaParam hidden" id="alertaVend"></div>
     </div>
 
     <div class="kpis" id="kpis"></div>
@@ -337,7 +344,7 @@
    ========================================================= */
 const API = 'https://script.google.com/macros/s/AKfycbyKfrfeTPq8MrBbIGsZp54_6l8yPKWDV6omrG7GCBlrfpzkTktzhdd8gUBlSdFivvGU/exec';
 const ATUALIZAR_A_CADA_MIN = 5;
-const VERSAO = '11';
+const VERSAO = '12';
 
 /* ---------- utilidades ---------- */
 const $ = s => document.querySelector(s);
@@ -367,9 +374,14 @@ const cor = k => `var(--r-${k})`;
 
 /* ---------- API ---------- */
 let senha = ssGet('cv_painel_senha'), dados = null;
+// Aparelho confiável: chave guardada neste navegador após um login certo (protege contra bloqueio por terceiros)
+const lsG = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const lsS = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
 async function api(acao, extra = {}){
-  const r = await fetch(API, { method: 'POST', body: JSON.stringify({ acao, senha, ...extra }) });
-  const j = await r.json(); if (!j.ok) throw new Error(j.erro || 'Erro');
+  const r = await fetch(API, { method: 'POST', body: JSON.stringify({ acao, senha, dispositivo: lsG('cv_painel_disp') || '', ...extra }) });
+  const j = await r.json();
+  if (j.dispositivo) lsS('cv_painel_disp', j.dispositivo);
+  if (!j.ok) throw new Error(j.erro || 'Erro');
   return j;
 }
 
@@ -555,7 +567,8 @@ async function carregar(silencioso){
   if (ld) ld.remove();
 }
 function normalizar(j){
-  const vendedores = j.vendedores.map(v => ({ cpf: digits(v['CPF']).padStart(11, '0'), nome: v['Nome'], email: v['E-mail'] }));
+  const vendedores = j.vendedores.map(v => ({ cpf: digits(v['CPF']).padStart(11, '0'), nome: v['Nome'], email: v['E-mail'],
+    situacao: v['Situação'] || 'Aprovado', cadastradoEm: parseD(v['Cadastrado em']), aprovadoEm: parseD(v['Aprovado em']) }));
   const clientes = j.clientes.map(c => ({
     id: c['ID'], vcpf: digits(c['CPF do vendedor']).padStart(11, '0'), vendedor: c['Vendedor'], status: c['Status'],
     res: RES_POR_TXT[c['Resultado']] || null, nome: c['Nome / Razão social'], cidade: c['Cidade'], bairro: c['Bairro'],
@@ -640,7 +653,7 @@ function render(){
   const cs = dados.clientes.filter(doVend); clientesF = cs;
   visitasP = cs.filter(c => c.res && dentro(c.dVisita, P.ini, P.fim));
   contratosP = cs.filter(c => c.res === 'contrato' && dentro(c.dContrato, P.ini, P.fim));
-  alertaParametros();
+  alertaParametros(); alertaVendedores();
   kpis(cs); cardParadas(); situacoes(cs); visitometro(cs); relogio(); graficoDias(); resultados(); metas(); mapa(); tabelaVendedores(); limiteVisitas = 30; tabelaVisitas(); carteira(); concorrentes();
 }
 
@@ -651,6 +664,39 @@ function delta(atual, ant, fmt = v => v){
 }
 /* ---------- Alerta: contratos fora do parâmetro (todos, independe do período) ---------- */
 const contratosForaParam = () => clientesF.filter(c => c.res === 'contrato' && foraParam(c)).sort((a, b) => (b.dContrato || 0) - (a.dContrato || 0));
+/* ---------- Vendedores: aprovação de acesso ---------- */
+function alertaVendedores(){
+  const pend = dados.vendedores.filter(v => v.situacao === 'Pendente'), el = $('#alertaVend'), b = $('#nPend');
+  b.textContent = pend.length; b.classList.toggle('hidden', !pend.length);
+  if (!pend.length) { el.classList.add('hidden'); return; }
+  el.className = 'alertaParam'; el.innerHTML = `⏳ <b>${pend.length}</b> vendedor${pend.length > 1 ? 'es' : ''} aguardando aprovação – <a href="#" onclick="abrirVendedores();return false">Revisar</a>`;
+}
+function abrirVendedores(){
+  const bg = document.createElement('div'); bg.className = 'modal-bg';
+  const grupo = (titulo, lista, botoes) => lista.length ? `<h4 class="vg">${titulo} <small>(${lista.length})</small></h4>` + lista.map(v => `
+    <div class="vrow"><div class="vinfo"><b>${esc(v.nome)}</b><small>${esc(v.email || '')} · CPF ${esc(v.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4'))}${v.cadastradoEm ? ' · cadastro ' + br(v.cadastradoEm) : ''}</small></div>
+      <div class="vbtns">${botoes.map(([sit, txt, cls]) => `<button class="btn-mini ${cls}" data-cpf="${v.cpf}" data-sit="${sit}">${txt}</button>`).join('')}</div></div>`).join('') : '';
+  const desenhar = () => {
+    const vs = dados.vendedores;
+    bg.innerHTML = `<div class="modal modal-lg"><h3>👥 Vendedores</h3>
+      <p>Só vendedores <b>aprovados</b> conseguem enviar dados para a planilha. Quem se cadastra no app entra como pendente e você recebe um e-mail.</p>
+      ${grupo('⏳ Aguardando aprovação', vs.filter(v => v.situacao === 'Pendente'), [['Aprovado', '✓ Aprovar', 'ok'], ['Bloqueado', 'Recusar', 'red']])}
+      ${grupo('✓ Aprovados', vs.filter(v => v.situacao === 'Aprovado'), [['Bloqueado', 'Bloquear', 'red']])}
+      ${grupo('⛔ Bloqueados', vs.filter(v => v.situacao === 'Bloqueado'), [['Aprovado', 'Reativar', 'ok']])}
+      ${vs.length ? '' : '<div class="empty">Nenhum vendedor cadastrado ainda.</div>'}
+      <div class="mact"><span style="flex:1"></span><button class="btn btn-green" data-x>Fechar</button></div></div>`;
+    bg.querySelectorAll('[data-sit]').forEach(b => b.onclick = async () => {
+      const v = dados.vendedores.find(x => x.cpf === b.dataset.cpf), sit = b.dataset.sit;
+      if (sit === 'Bloqueado' && !confirm(`Bloquear ${v.nome}? O app dele para de enviar dados (o que já está na planilha continua).`)) return;
+      b.disabled = true; b.textContent = '…';
+      try { await api('painelVendedorSituacao', { dados: { cpf: v.cpf, situacao: sit } }); v.situacao = sit; toast(`${v.nome}: ${sit === 'Aprovado' ? 'aprovado' : 'bloqueado'}`); desenhar(); alertaVendedores(); }
+      catch (e) { toast('Erro: ' + e.message); b.disabled = false; }
+    });
+  };
+  desenhar(); document.body.appendChild(bg);
+  bg.addEventListener('click', e => { if (e.target === bg || e.target.closest('[data-x]')) bg.remove(); });
+}
+
 function alertaParametros(){
   const el = $('#alertaParam'), temParam = dados.parametros.length > 0, l = contratosForaParam();
   if (!temParam) { el.className = 'alertaParam neutro'; el.innerHTML = '⚙ Nenhum parâmetro comercial definido. <a href="#" onclick="abrirParametros();return false">Definir parâmetros</a>'; return; }
@@ -860,7 +906,7 @@ function abrirMetas(){
     return Object.fromEntries(dados.vendedores.map(v => { const ind = ms.find(x => x.cpf && x.cpf.padStart(11, '0') === v.cpf); return [v.cpf, ind && ind.meta ? ind.meta : (ger && ger.meta ? ger.meta : '')]; })); };
   const lista = vals => {
     bg.querySelector('[data-nomemes]').textContent = nomeMes(mes);
-    bg.querySelector('[data-lista]').innerHTML = dados.vendedores.map(v => `<div class="mrow"><span>${esc(v.nome)}</span><input type="number" min="0" step="1" inputmode="numeric" data-cpf="${v.cpf}" data-nome="${esc(v.nome)}" value="${vals[v.cpf] ?? ''}"></div>`).join('') +
+    bg.querySelector('[data-lista]').innerHTML = dados.vendedores.filter(v => v.situacao === 'Aprovado').map(v => `<div class="mrow"><span>${esc(v.nome)}</span><input type="number" min="0" step="1" inputmode="numeric" data-cpf="${v.cpf}" data-nome="${esc(v.nome)}" value="${vals[v.cpf] ?? ''}"></div>`).join('') +
       `<div class="mrow mtot"><span><b>Meta da equipe</b><br><small style="color:var(--muted)">soma automática</small></span><b data-tot style="font-size:22px;min-width:110px;text-align:right">0</b></div>`;
     const ins = [...bg.querySelectorAll('input[data-cpf]')];
     const somar = () => bg.querySelector('[data-tot]').textContent = ins.reduce((s, i) => s + (Math.max(0, Math.round(+i.value)) || 0), 0);
