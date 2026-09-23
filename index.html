@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1e7a3a">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="leaflet.css">
+<title>Painel da Gerência – Cheiro Verde</title>
+<style>
+  :root{
+    --green:#289548; --green-d:#1e7a3a; --green-dd:#145a2a; --lime:#afcb09; --lime-soft:#f2f7d9;
+    --bg:#f3f6f1; --surface:#fff; --ink:#18261c; --muted:#66756a; --line:#e1e8de; --grid:#edf1ea;
+    --red:#d64545; --red-bg:#fdeaea; --orange:#ef8a00; --orange-bg:#fff1dc; --ok:#289548; --ok-bg:#e3f4e8;
+    --blue:#2a6fdb; --blue-bg:#e8f0fd; --violet:#7a5ccf; --violet-bg:#efeafb;
+    /* cores dos resultados (validadas para daltonismo na ordem abaixo) */
+    --r-contrato:#289548; --r-proposta:#2a6fdb; --r-outraEmpresa:#ef8a00; --r-fechado:#7a5ccf; --r-naoExiste:#d64545;
+    --radius:18px; --shadow:0 1px 2px rgba(20,50,30,.06),0 6px 18px rgba(20,50,30,.07);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Jost,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;font-size:15px}
+  button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+  input,select{font:inherit}
+  .hidden{display:none!important}
+  a{color:var(--green-d)}
+
+  /* ---------- Login ---------- */
+  #login{min-height:100vh;display:grid;place-items:center;padding:24px;
+    background:radial-gradient(120% 70% at 100% 0%,#34a95a 0%,transparent 60%),linear-gradient(165deg,var(--green) 0%,var(--green-dd) 100%);color:#fff}
+  .lbox{width:100%;max-width:380px}
+  .lbox img{width:240px;max-width:80%;margin-bottom:26px}
+  .lbox h1{margin:0 0 4px;font-size:26px} .lbox p{margin:0 0 22px;opacity:.85}
+  .lbox input{width:100%;padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;font-size:16px;outline:none;margin-bottom:12px}
+  .lbox input::placeholder{color:rgba(255,255,255,.6)}
+  .lbox input:focus{border-color:var(--lime)}
+  .lbox button{width:100%;padding:14px;border-radius:12px;background:#fff;color:var(--green-d);font-weight:700;font-size:16px}
+  .lerr{margin-top:12px;font-size:14px;color:#ffe0e0;min-height:20px}
+
+  /* ---------- Topo ---------- */
+  header.top{background:radial-gradient(110% 120% at 100% 0%,#34a95a 0%,transparent 55%),linear-gradient(165deg,var(--green) 0%,var(--green-dd) 100%);color:#fff;padding:16px 24px 70px}
+  .top .row{max-width:1320px;margin:0 auto;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .top img{height:42px}
+  .top h1{margin:0;font-size:20px;font-weight:600;flex:1;min-width:160px;padding-left:16px;border-left:1px solid rgba(255,255,255,.35)}
+  .top .upd{font-size:13px;opacity:.85}
+  .tbtn{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border-radius:10px;background:rgba(255,255,255,.14);font-weight:600;font-size:14px;color:#fff}
+  .tbtn:hover{background:rgba(255,255,255,.22)}
+  main{max-width:1320px;margin:-50px auto 0;padding:0 24px 48px;position:relative}
+
+  /* ---------- Filtros ---------- */
+  .filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px;margin-bottom:16px}
+  .seg{display:flex;background:#eef2ec;border-radius:10px;padding:3px;flex-wrap:wrap}
+  .seg button{padding:8px 12px;border-radius:8px;font-weight:600;color:var(--muted);font-size:14px}
+  .seg button.on{background:var(--surface);color:var(--green-d);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+  .filters select,.filters input[type=date]{padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:#fbfcfa;font-size:14px}
+  .filters .sp{flex:1}
+  .filters .lbl{font-size:13px;color:var(--muted);font-weight:600}
+
+  /* ---------- KPIs ---------- */
+  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:16px}
+  .kpi{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+  .kpi .t{font-size:13px;color:var(--muted);font-weight:600}
+  .kpi .v{font-size:30px;font-weight:800;margin:6px 0 4px;line-height:1.05}
+  .kpi .d{font-size:12.5px;color:var(--muted)}
+  .kpi .d b.up{color:var(--ok)} .kpi .d b.down{color:var(--red)}
+
+  /* ---------- Cartões ---------- */
+  .grid{display:grid;gap:16px;margin-bottom:16px}
+  .g2{grid-template-columns:1fr 1fr} .g32{grid-template-columns:3fr 2fr} .g23{grid-template-columns:2fr 3fr}
+  .card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;min-width:0}
+  .card h2{margin:0 0 2px;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .card .sub{font-size:13px;color:var(--muted);margin:0 0 14px}
+  .lnk{font-size:13px;font-weight:700;color:var(--green-d);padding:6px 10px;border-radius:8px;background:#eef3eb}
+  .empty{color:var(--muted);text-align:center;padding:30px 10px;font-size:14px}
+
+  /* barras horizontais (resultados, metas) */
+  .hbar{display:grid;grid-template-columns:minmax(120px,215px) 1fr minmax(70px,auto);gap:10px;align-items:center;padding:6px 0}
+  .hbar .n{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:8px}
+  .hbar .sw{width:10px;height:10px;border-radius:3px;flex:none}
+  .hbar .tr{height:14px;background:var(--grid);border-radius:4px;overflow:hidden}
+  .hbar .fl{height:100%;border-radius:0 4px 4px 0;min-width:2px}
+  .hbar .val{font-size:14px;font-weight:700;text-align:right;white-space:nowrap}
+  .hbar .val small{font-weight:500;color:var(--muted)}
+  .chip{display:inline-block;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .s-red{background:var(--red-bg);color:#b53030} .s-orange{background:var(--orange-bg);color:#a85f00} .s-lime{background:var(--lime-soft);color:#6f8200} .s-green{background:var(--ok-bg);color:var(--green-d)} .s-none{background:#eef1ec;color:var(--muted)}
+
+  /* gráfico de colunas */
+  .chart{position:relative;width:100%}
+  .chart svg{display:block;width:100%;overflow:visible}
+  .axis text{font-size:11px;fill:var(--muted);font-family:inherit}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted);margin-top:10px}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+  #tip{position:fixed;z-index:1000;pointer-events:none;background:#18261c;color:#fff;border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.45;box-shadow:0 8px 24px rgba(0,0,0,.2);opacity:0;transition:opacity .1s;max-width:260px}
+  #tip.show{opacity:1}
+  #tip b{font-weight:700} #tip .r{display:flex;align-items:center;gap:6px} #tip i{width:9px;height:9px;border-radius:2px;display:inline-block}
+
+  /* tabelas */
+  .tbl{width:100%;border-collapse:collapse;font-size:14px}
+  .tbl th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);font-weight:700;padding:8px 10px;border-bottom:1.5px solid var(--line);white-space:nowrap}
+  .tbl td{padding:10px;border-bottom:1px solid var(--grid);vertical-align:middle}
+  .tbl td.nw{white-space:nowrap}
+  .tbl td.num,.tbl th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .tbl tr:hover td{background:#fafcf9}
+  .tscroll{overflow-x:auto}
+  .tag{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;background:#f1f4ef;color:var(--ink)}
+  .tag i{width:8px;height:8px;border-radius:50%;display:inline-block}
+  .search{padding:8px 12px;border-radius:10px;border:1.5px solid var(--line);font-size:14px;width:220px;max-width:100%}
+  .more{display:block;margin:12px auto 0;font-weight:700;color:var(--green-d);padding:8px 16px;border-radius:10px;background:#eef3eb}
+
+  #mapa{height:380px;border-radius:12px;overflow:hidden;background:#e9eee6}
+  .leaflet-popup-content{font-family:Jost,Arial,sans-serif;font-size:13px}
+
+  /* modal metas */
+  .modal-bg{position:fixed;inset:0;background:rgba(10,30,15,.5);z-index:2000;display:grid;place-items:center;padding:16px}
+  .modal{background:var(--surface);border-radius:20px;padding:22px;width:100%;max-width:520px;max-height:90vh;overflow:auto}
+  .modal h3{margin:0 0 4px;font-size:20px} .modal p{margin:0 0 16px;color:var(--muted);font-size:14px}
+  .mrow{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--grid)}
+  .mrow span{flex:1} .mrow input{width:110px;padding:9px 10px;border-radius:10px;border:1.5px solid var(--line);font-size:15px;text-align:right}
+  .mact{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+  .btn{padding:11px 18px;border-radius:10px;font-weight:700}
+  .btn-green{background:var(--green);color:#fff} .btn-soft{background:#eef3eb;color:var(--green-d)}
+  .loading{position:fixed;inset:0;background:rgba(243,246,241,.75);z-index:1500;display:grid;place-items:center;font-weight:600;color:var(--green-d);font-size:16px}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;font-size:14px;z-index:3000;opacity:0;transition:opacity .2s;pointer-events:none}
+  .toast.show{opacity:1}
+
+  @media (max-width:1100px){ .kpis{grid-template-columns:repeat(3,1fr)} .g32,.g23,.g2{grid-template-columns:1fr} }
+  .card h2{flex-wrap:wrap}
+  @media (max-width:600px){ .hbar .val{white-space:normal} .hbar .val small{display:block;font-size:11px} .search{width:160px} #mapa{height:300px} .tbtn{padding:8px 10px} .kpis{grid-template-columns:repeat(2,1fr)} header.top{padding:14px 16px 66px} main{padding:0 16px 40px} .top h1{border:0;padding:0;flex-basis:100%} .hbar{grid-template-columns:110px 1fr 60px} }
+</style>
+</head>
+<body>
+
+<section id="login" class="hidden">
+  <form class="lbox" id="loginForm">
+    <img src="logo.svg" alt="Cheiro Verde Ambiental">
+    <h1>Painel da Gerência</h1>
+    <p>Acompanhe as visitas, propostas e contratos da equipe.</p>
+    <input id="senha" type="password" placeholder="Senha do painel" autocomplete="current-password">
+    <button type="submit" id="entrarBtn">Entrar</button>
+    <div class="lerr" id="lerr"></div>
+  </form>
+</section>
+
+<section id="app" class="hidden">
+  <header class="top"><div class="row">
+    <img src="logo.svg" alt="Cheiro Verde Ambiental">
+    <h1>Painel da Gerência · Vendas Externas</h1>
+    <span class="upd" id="upd"></span>
+    <button class="tbtn" onclick="carregar()">⟳ Atualizar</button>
+    <button class="tbtn" onclick="sair()">Sair</button>
+  </div></header>
+
+  <main>
+    <div class="filters">
+      <span class="lbl">Período</span>
+      <div class="seg" id="segPeriodo">
+        <button data-p="mes">Este mês</button><button data-p="mesAnt">Mês anterior</button>
+        <button data-p="7">7 dias</button><button data-p="30">30 dias</button><button data-p="custom">Personalizado</button>
+      </div>
+      <span id="customBox" class="hidden"><input type="date" id="dIni"> até <input type="date" id="dFim"></span>
+      <span class="sp"></span>
+      <span class="lbl">Vendedor</span>
+      <select id="selVend"></select>
+    </div>
+
+    <div class="kpis" id="kpis"></div>
+
+    <div class="grid g32">
+      <div class="card"><h2>Visitas por dia <span></span></h2><p class="sub" id="subDias">Resultado de cada visita finalizada</p><div class="chart" id="chDias"></div><div class="legend" id="legDias"></div></div>
+      <div class="card"><h2>Resultado das visitas</h2><p class="sub">Como terminaram as visitas do período</p><div id="chRes"></div></div>
+    </div>
+
+    <div class="grid g23">
+      <div class="card"><h2>Meta do mês <button class="lnk" onclick="abrirMetas()">Definir metas</button></h2><p class="sub" id="subMeta">Contratos fechados no mês atual</p><div id="chMeta"></div></div>
+      <div class="card"><h2>Mapa das visitas</h2><p class="sub">Check-ins registrados no período</p><div id="mapa"></div>
+        <div class="legend"><span><i style="background:var(--r-contrato)"></i>Contrato fechado</span><span><i style="background:var(--r-proposta)"></i>Proposta enviada</span><span><i style="background:var(--r-outraEmpresa)"></i>Outros resultados</span></div></div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px"><h2>Desempenho por vendedor</h2><p class="sub">Período selecionado · meta refere-se ao mês atual</p><div class="tscroll" id="tbVend"></div></div>
+
+    <div class="grid g2">
+      <div class="card"><h2>Carteira a visitar</h2><p class="sub">Clientes cadastrados ainda sem visita finalizada</p><div id="chCarteira"></div></div>
+      <div class="card"><h2>Concorrentes citados</h2><p class="sub">Empresas que já atendem os clientes visitados (período)</p><div id="chConc"></div></div>
+    </div>
+
+    <div class="grid">
+      <div class="card"><h2>Visitas realizadas <span style="display:flex;gap:8px"><input class="search" id="busca" placeholder="Buscar cliente, cidade…"><button class="lnk" onclick="baixarCSV()">Baixar CSV</button></span></h2>
+        <p class="sub">Mais recentes primeiro</p><div class="tscroll" id="tbVisitas"></div></div>
+    </div>
+  </main>
+</section>
+
+<div id="tip"></div>
+<div class="toast" id="toast"></div>
+
+<script src="leaflet.js"></script>
+<script>
+/* =========================================================
+   CONFIGURAÇÃO — mesmo link do Apps Script usado no app do vendedor
+   ========================================================= */
+const API = 'https://script.google.com/macros/s/AKfycbyKfrfeTPq8MrBbIGsZp54_6l8yPKWDV6omrG7GCBlrfpzkTktzhdd8gUBlSdFivvGU/exec';
+const ATUALIZAR_A_CADA_MIN = 5;
+
+/* ---------- utilidades ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const parseD = v => { if (!v) return null; const s = String(v); const m = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}):?(\d{2})?)?/);
+  if (!m) { const d = new Date(s); return isNaN(d) ? null : d; } return new Date(+m[1], m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0)); };
+const br = d => d ? `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}` : '';
+const brl = v => 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const brlK = v => v >= 1000 ? 'R$ ' + (v / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mil' : brl(v);
+const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const digits = s => String(s || '').replace(/\D/g, '');
+const ssGet = k => { try { return sessionStorage.getItem(k); } catch (e) { return null; } };
+const ssSet = (k, v) => { try { v == null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch (e) {} };
+function toast(m){ const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 2600); }
+
+const RES = [ // ordem fixa (validada): cor segue o resultado, nunca a posição
+  { k: 'contrato', txt: 'Contrato fechado' },
+  { k: 'proposta', txt: 'Proposta enviada' },
+  { k: 'outraEmpresa', txt: 'Atendido por outra empresa' },
+  { k: 'fechado', txt: 'Cliente fechado' },
+  { k: 'naoExiste', txt: 'Cliente não existe' },
+];
+const RES_POR_TXT = Object.fromEntries(RES.map(r => [r.txt, r.k]));
+const cor = k => `var(--r-${k})`;
+
+/* ---------- API ---------- */
+let senha = ssGet('cv_painel_senha'), dados = null;
+async function api(acao, extra = {}){
+  const r = await fetch(API, { method: 'POST', body: JSON.stringify({ acao, senha, ...extra }) });
+  const j = await r.json(); if (!j.ok) throw new Error(j.erro || 'Erro');
+  return j;
+}
+
+/* ---------- login ---------- */
+$('#loginForm').addEventListener('submit', async e => {
+  e.preventDefault(); senha = $('#senha').value; $('#lerr').textContent = ''; $('#entrarBtn').textContent = 'Entrando…';
+  try { await api('painelLogin'); ssSet('cv_painel_senha', senha); iniciar(); }
+  catch (x) { $('#lerr').textContent = x.message === 'Failed to fetch' ? 'Sem conexão com o Google. Tente de novo.' : x.message; }
+  $('#entrarBtn').textContent = 'Entrar';
+});
+function sair(){ ssSet('cv_painel_senha', null); senha = null; location.reload(); }
+function iniciar(){ $('#login').classList.add('hidden'); $('#app').classList.remove('hidden'); carregar(); setInterval(() => carregar(true), ATUALIZAR_A_CADA_MIN * 60000); }
+
+/* ---------- carga e normalização ---------- */
+async function carregar(silencioso){
+  let ld; if (!silencioso) { ld = document.createElement('div'); ld.className = 'loading'; ld.textContent = 'Carregando dados da planilha…'; document.body.appendChild(ld); }
+  try { dados = normalizar(await api('painelDados')); montarFiltroVend(); render(); $('#upd').textContent = 'Atualizado às ' + new Date().toTimeString().slice(0, 5); }
+  catch (e) { if (/senha/i.test(e.message)) return sair(); toast('Não foi possível carregar: ' + e.message); }
+  if (ld) ld.remove();
+}
+function normalizar(j){
+  const vendedores = j.vendedores.map(v => ({ cpf: digits(v['CPF']).padStart(11, '0'), nome: v['Nome'], email: v['E-mail'] }));
+  const clientes = j.clientes.map(c => ({
+    id: c['ID'], vcpf: digits(c['CPF do vendedor']).padStart(11, '0'), vendedor: c['Vendedor'], status: c['Status'],
+    res: RES_POR_TXT[c['Resultado']] || null, nome: c['Nome / Razão social'], cidade: c['Cidade'], bairro: c['Bairro'],
+    modalidade: c['Modalidade'], motivo: c['Motivo da visita'], lat: Number(c['Check-in latitude']) || null, lng: Number(c['Check-in longitude']) || null,
+    mapa: c['Mapa do check-in'], fotos: Number(c['Qtde de fotos']) || 0, pasta: c['Pasta de fotos'],
+    preco: Number(c['Preço (R$)']) || 0, freq: c['Frequência de coleta'], franquia: c['Franquia (kg/mês)'], excedente: c['Excedente (R$/kg)'],
+    dVisita: parseD(c['Data da visita']), dContrato: parseD(c['Data do contrato']), dCadastro: parseD(c['Cadastrado em']),
+    concorrente: c['Empresa concorrente'], contato: c['Contato'], telefone: c['Telefone'],
+  }));
+  // vendedores que só aparecem nos clientes
+  clientes.forEach(c => { if (c.vcpf && !vendedores.some(v => v.cpf === c.vcpf)) vendedores.push({ cpf: c.vcpf, nome: c.vendedor }); });
+  vendedores.sort((a, b) => String(a.nome).localeCompare(String(b.nome)));
+  const metas = j.metas.map(m => ({ mes: String(m['Mês (AAAA-MM)']).slice(0, 7), cpf: digits(m['CPF do vendedor (vazio = todos)']), meta: Number(m['Meta de contratos']) || 0 }));
+  return { vendedores, clientes, metas, geradoEm: parseD(j.geradoEm) };
+}
+
+/* ---------- filtros ---------- */
+const filtro = { p: 'mes', vend: 'todos', ini: null, fim: null };
+function periodo(){
+  const h = new Date(); h.setHours(0, 0, 0, 0); let ini, fim;
+  if (filtro.p === 'mes') { ini = new Date(h.getFullYear(), h.getMonth(), 1); fim = h; }
+  else if (filtro.p === 'mesAnt') { ini = new Date(h.getFullYear(), h.getMonth() - 1, 1); fim = new Date(h.getFullYear(), h.getMonth(), 0); }
+  else if (filtro.p === '7' || filtro.p === '30') { fim = h; ini = new Date(h); ini.setDate(h.getDate() - (+filtro.p - 1)); }
+  else { ini = parseD($('#dIni').value) || h; fim = parseD($('#dFim').value) || h; if (fim < ini) [ini, fim] = [fim, ini]; }
+  const dias = Math.round((fim - ini) / 864e5) + 1;
+  const antFim = new Date(ini); antFim.setDate(ini.getDate() - 1); const antIni = new Date(antFim); antIni.setDate(antFim.getDate() - (dias - 1));
+  if (filtro.p === 'mes') { antIni.setTime(new Date(h.getFullYear(), h.getMonth() - 1, 1)); antFim.setTime(new Date(h.getFullYear(), h.getMonth() - 1, Math.min(h.getDate(), new Date(h.getFullYear(), h.getMonth(), 0).getDate()))); }
+  return { ini, fim, dias, antIni, antFim };
+}
+const dentro = (d, a, b) => d && d >= a && d <= new Date(b.getFullYear(), b.getMonth(), b.getDate(), 23, 59, 59);
+document.querySelectorAll('#segPeriodo button').forEach(b => b.onclick = () => {
+  filtro.p = b.dataset.p; $('#customBox').classList.toggle('hidden', filtro.p !== 'custom');
+  if (filtro.p === 'custom' && !$('#dIni').value) { const h = new Date(); $('#dFim').value = ymd(h); h.setDate(1); $('#dIni').value = ymd(h); }
+  render();
+});
+['#dIni', '#dFim'].forEach(s => $(s).onchange = render);
+$('#selVend').onchange = e => { filtro.vend = e.target.value; render(); };
+$('#busca').oninput = () => { limiteVisitas = 30; tabelaVisitas(); };
+function montarFiltroVend(){
+  const s = $('#selVend'), atual = filtro.vend;
+  s.innerHTML = '<option value="todos">Todos os vendedores</option>' + dados.vendedores.map(v => `<option value="${v.cpf}">${esc(v.nome)}</option>`).join('');
+  s.value = dados.vendedores.some(v => v.cpf === atual) ? atual : 'todos'; filtro.vend = s.value;
+}
+const doVend = c => filtro.vend === 'todos' || c.vcpf === filtro.vend;
+
+/* ---------- tooltip ---------- */
+const tip = $('#tip');
+function mostrarTip(html, e){ tip.innerHTML = html; tip.classList.add('show'); moverTip(e); }
+function moverTip(e){ const w = tip.offsetWidth, h = tip.offsetHeight; let x = e.clientX + 14, y = e.clientY + 14;
+  if (x + w > innerWidth - 8) x = e.clientX - w - 14; if (y + h > innerHeight - 8) y = e.clientY - h - 14; tip.style.left = x + 'px'; tip.style.top = y + 'px'; }
+const esconderTip = () => tip.classList.remove('show');
+
+/* =========================================================
+   RENDER
+   ========================================================= */
+let P, visitasP, contratosP;
+function render(){
+  if (!dados) return;
+  document.querySelectorAll('#segPeriodo button').forEach(b => b.classList.toggle('on', b.dataset.p === filtro.p));
+  P = periodo();
+  const cs = dados.clientes.filter(doVend);
+  visitasP = cs.filter(c => c.res && dentro(c.dVisita, P.ini, P.fim));
+  contratosP = cs.filter(c => c.res === 'contrato' && dentro(c.dContrato, P.ini, P.fim));
+  kpis(cs); graficoDias(); resultados(); metas(); mapa(); tabelaVendedores(); limiteVisitas = 30; tabelaVisitas(); carteira(); concorrentes();
+}
+
+function delta(atual, ant, fmt = v => v){
+  if (!ant && !atual) return '<span>sem movimento no período anterior</span>';
+  const d = atual - ant, cls = d > 0 ? 'up' : d < 0 ? 'down' : '';
+  return `<b class="${cls}">${d > 0 ? '▲' : d < 0 ? '▼' : '='} ${fmt(Math.abs(d))}</b> vs período anterior`;
+}
+function kpis(cs){
+  const visAnt = cs.filter(c => c.res && dentro(c.dVisita, P.antIni, P.antFim)).length;
+  const conAnt = cs.filter(c => c.res === 'contrato' && dentro(c.dContrato, P.antIni, P.antFim));
+  const valor = contratosP.reduce((s, c) => s + c.preco, 0), valorAnt = conAnt.reduce((s, c) => s + c.preco, 0);
+  const convN = visitasP.filter(c => c.res === 'contrato').length;
+  const conv = visitasP.length ? Math.round(convN / visitasP.length * 100) : 0;
+  const props = visitasP.filter(c => c.res === 'proposta'), valorProps = props.reduce((s, c) => s + c.preco, 0);
+  const aVisitar = cs.filter(c => !c.res).length;
+  const t = (titulo, v, d) => `<div class="kpi"><div class="t">${titulo}</div><div class="v">${v}</div><div class="d">${d}</div></div>`;
+  $('#kpis').innerHTML =
+    t('Visitas realizadas', visitasP.length, delta(visitasP.length, visAnt)) +
+    t('Contratos fechados', contratosP.length, delta(contratosP.length, conAnt.length)) +
+    t('Valor mensal contratado', brlK(valor), delta(valor, valorAnt, brlK)) +
+    t('Taxa de conversão', conv + '%', `${convN} contrato(s) em ${visitasP.length} visita(s)`) +
+    t('Propostas em aberto', props.length, props.length ? brlK(valorProps) + ' por mês em negociação' : 'nenhuma no período') +
+    t('Carteira a visitar', aVisitar, 'clientes aguardando visita');
+}
+
+/* ---------- Visitas por dia (colunas empilhadas) ---------- */
+function graficoDias(){
+  const el = $('#chDias'), W = el.clientWidth || 700, H = 240, m = { t: 10, r: 8, b: 26, l: 30 };
+  const dias = []; for (let d = new Date(P.ini); d <= P.fim; d.setDate(d.getDate() + 1)) dias.push(new Date(d));
+  const cont = dias.map(d => { const k = ymd(d), o = { d, tot: 0 }; RES.forEach(r => o[r.k] = 0);
+    visitasP.forEach(c => { if (ymd(c.dVisita) === k) { o[c.res]++; o.tot++; } }); return o; });
+  $('#subDias').textContent = `${br(P.ini)} a ${br(P.fim)} · resultado de cada visita finalizada`;
+  if (!visitasP.length) { el.innerHTML = '<div class="empty">Nenhuma visita finalizada no período.</div>'; $('#legDias').innerHTML = ''; return; }
+  const max = Math.max(1, ...cont.map(o => o.tot)), step = max <= 5 ? 1 : Math.ceil(max / 5), top = Math.ceil(max / step) * step;
+  const iw = W - m.l - m.r, ih = H - m.t - m.b, bw = iw / dias.length, bar = Math.max(2, Math.min(28, bw - (bw > 8 ? 4 : 1)));
+  const y = v => m.t + ih - v / top * ih;
+  let g = '';
+  for (let v = 0; v <= top; v += step) g += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="${m.l - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
+  const cada = Math.ceil(dias.length / Math.max(1, Math.floor(iw / 38)));
+  cont.forEach((o, i) => {
+    const x = m.l + i * bw + (bw - bar) / 2; let acc = 0;
+    RES.forEach(r => { if (!o[r.k]) return; const h = o[r.k] / top * ih, yy = y(acc + o[r.k]);
+      g += `<rect x="${x}" y="${yy + 1}" width="${bar}" height="${Math.max(0, h - 2)}" rx="${Math.min(4, bar / 3)}" fill="${cor(r.k)}"/>`; acc += o[r.k]; });
+    if (i % cada === 0) g += `<text x="${m.l + i * bw + bw / 2}" y="${H - 8}" text-anchor="middle">${pad(o.d.getDate())}/${pad(o.d.getMonth() + 1)}</text>`;
+    g += `<rect class="hit" data-i="${i}" x="${m.l + i * bw}" y="${m.t}" width="${bw}" height="${ih}" fill="transparent"/>`;
+  });
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" class="axis" role="img" aria-label="Visitas por dia">${g}</svg>`;
+  el.querySelectorAll('.hit').forEach(h => {
+    const o = cont[+h.dataset.i];
+    const html = () => `<b>${o.d.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' })}</b><br>${o.tot} visita(s)` +
+      RES.filter(r => o[r.k]).map(r => `<div class="r"><i style="background:${cor(r.k)}"></i>${r.txt}: <b>${o[r.k]}</b></div>`).join('');
+    h.onmouseenter = e => { h.setAttribute('fill', 'rgba(30,122,58,.06)'); mostrarTip(html(), e); };
+    h.onmousemove = moverTip; h.onmouseleave = () => { h.setAttribute('fill', 'transparent'); esconderTip(); };
+  });
+  $('#legDias').innerHTML = RES.map(r => `<span><i style="background:${cor(r.k)}"></i>${r.txt}</span>`).join('');
+}
+
+/* ---------- Resultado das visitas ---------- */
+function resultados(){
+  const tot = visitasP.length;
+  if (!tot) return $('#chRes').innerHTML = '<div class="empty">Nenhuma visita finalizada no período.</div>';
+  const max = Math.max(...RES.map(r => visitasP.filter(c => c.res === r.k).length), 1);
+  $('#chRes').innerHTML = RES.map(r => { const n = visitasP.filter(c => c.res === r.k).length;
+    return `<div class="hbar"><div class="n"><i class="sw" style="background:${cor(r.k)}"></i>${r.txt}</div>
+      <div class="tr"><div class="fl" style="width:${n / max * 100}%;background:${cor(r.k)}"></div></div>
+      <div class="val">${n} <small>${Math.round(n / tot * 100)}%</small></div></div>`; }).join('') +
+    `<p class="sub" style="margin:12px 0 0">${tot} visita(s) finalizada(s) · presencial ${visitasP.filter(c => c.modalidade === 'Presencial').length} · virtual ${visitasP.filter(c => c.modalidade === 'Virtual').length}</p>`;
+}
+
+/* ---------- Metas (mês atual) ---------- */
+const mesAtual = () => ymd(new Date()).slice(0, 7);
+function metaDe(cpf){
+  const ms = dados.metas.filter(m => m.mes === mesAtual());
+  const ind = ms.find(m => m.cpf && m.cpf.padStart(11, '0') === cpf); if (ind && ind.meta) return ind.meta;
+  const ger = ms.find(m => !m.cpf); return ger ? ger.meta : 0;
+}
+const faixa = pct => pct >= 100 ? 's-green' : pct >= 89 ? 's-lime' : pct > 50 ? 's-orange' : 's-red';
+const corFaixa = { 's-green': 'var(--ok)', 's-lime': 'var(--lime)', 's-orange': 'var(--orange)', 's-red': 'var(--red)' };
+function contratosMesDe(cpf){ const m = mesAtual(); return dados.clientes.filter(c => c.vcpf === cpf && c.res === 'contrato' && c.dContrato && ymd(c.dContrato).startsWith(m)).length; }
+function metas(){
+  const h = new Date(), diasRest = new Date(h.getFullYear(), h.getMonth() + 1, 0).getDate() - h.getDate();
+  $('#subMeta').textContent = `Contratos fechados em ${MESES[h.getMonth()]} · ${diasRest} dia(s) restante(s)`;
+  const vs = dados.vendedores.filter(v => filtro.vend === 'todos' || v.cpf === filtro.vend);
+  if (!vs.length) return $('#chMeta').innerHTML = '<div class="empty">Nenhum vendedor cadastrado ainda.</div>';
+  let equipe = '';
+  if (filtro.vend === 'todos' && vs.length > 1) {
+    const tf = vs.reduce((s, v) => s + contratosMesDe(v.cpf), 0), tm = vs.reduce((s, v) => s + metaDe(v.cpf), 0);
+    if (tm) { const f = faixa(tf / tm * 100);
+      equipe = `<div class="hbar" style="border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:4px"><div class="n"><b>Equipe</b></div>
+        <div class="tr"><div class="fl" style="width:${Math.min(100, tf / tm * 100)}%;background:${corFaixa[f]}"></div></div>
+        <div class="val">${tf}/${tm} <span class="chip ${f}">${Math.round(tf / tm * 100)}%</span></div></div>`; }
+  }
+  $('#chMeta').innerHTML = equipe + vs.map(v => {
+    const feitos = contratosMesDe(v.cpf), meta = metaDe(v.cpf);
+    if (!meta) return `<div class="hbar"><div class="n" title="${esc(v.nome)}">${esc(v.nome)}</div><div class="tr"></div><div class="val">${feitos} <small>sem meta</small></div></div>`;
+    const pct = Math.round(feitos / meta * 100), f = faixa(feitos / meta * 100);
+    return `<div class="hbar"><div class="n" title="${esc(v.nome)}">${esc(v.nome)}</div>
+      <div class="tr"><div class="fl" style="width:${Math.min(100, pct)}%;background:${corFaixa[f]}"></div></div>
+      <div class="val">${feitos}/${meta} <span class="chip ${f}">${pct}%</span></div></div>`;
+  }).join('') + `<div class="legend"><span><span class="chip s-red">até 50%</span></span><span><span class="chip s-orange">51–88%</span></span><span><span class="chip s-lime">89–99%</span></span><span><span class="chip s-green">100%+</span></span></div>`;
+}
+function abrirMetas(){
+  const mes = mesAtual(), [y, m] = mes.split('-').map(Number);
+  const ms = dados.metas.filter(x => x.mes === mes), ger = ms.find(x => !x.cpf);
+  const bg = document.createElement('div'); bg.className = 'modal-bg';
+  bg.innerHTML = `<div class="modal"><h3>Metas de ${MESES[m - 1]} de ${y}</h3>
+    <p>Número de contratos fechados no mês. A meta individual vale mais que a meta geral. Deixe em branco para não definir.</p>
+    <div class="mrow"><span><b>Meta geral</b> (todos os vendedores)</span><input type="number" min="0" data-cpf="" value="${ger && ger.meta ? ger.meta : ''}"></div>
+    ${dados.vendedores.map(v => { const ind = ms.find(x => x.cpf && x.cpf.padStart(11, '0') === v.cpf);
+      return `<div class="mrow"><span>${esc(v.nome)}</span><input type="number" min="0" data-cpf="${v.cpf}" data-nome="${esc(v.nome)}" value="${ind && ind.meta ? ind.meta : ''}"></div>`; }).join('')}
+    <div class="mact"><button class="btn btn-soft" data-x>Cancelar</button><button class="btn btn-green" data-s>Salvar metas</button></div></div>`;
+  document.body.appendChild(bg);
+  bg.onclick = e => { if (e.target === bg || e.target.closest('[data-x]')) bg.remove(); };
+  bg.querySelector('[data-s]').onclick = async () => {
+    const lista = [...bg.querySelectorAll('input')].map(i => ({ mes, cpf: i.dataset.cpf, nome: i.dataset.nome || 'Todos', meta: i.value === '' ? '' : Math.max(0, Math.round(+i.value)) }));
+    bg.querySelector('[data-s]').textContent = 'Salvando…';
+    try { await api('painelSalvarMetas', { dados: { metas: lista } }); bg.remove(); toast('Metas salvas! Os vendedores veem ao abrir o app.'); carregar(); }
+    catch (e) { toast('Erro ao salvar: ' + e.message); bg.querySelector('[data-s]').textContent = 'Salvar metas'; }
+  };
+}
+
+/* ---------- Mapa ---------- */
+let mapaL = null, camada = null;
+function mapa(){
+  if (!window.L) { $('#mapa').innerHTML = '<div class="empty">Mapa indisponível.</div>'; return; }
+  if (!mapaL) {
+    mapaL = L.map('mapa', { scrollWheelZoom: false }).setView([-22.99, -49.47], 9);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(mapaL);
+  }
+  if (camada) camada.remove(); camada = L.layerGroup().addTo(mapaL);
+  const pts = visitasP.filter(c => c.lat && c.lng);
+  pts.forEach(c => {
+    const k = c.res === 'contrato' || c.res === 'proposta' ? c.res : 'outraEmpresa';
+    const cr = getComputedStyle(document.documentElement).getPropertyValue('--r-' + k).trim();
+    L.circleMarker([c.lat, c.lng], { radius: c.res === 'contrato' ? 9 : 7, color: '#fff', weight: 2, fillColor: cr, fillOpacity: .95 })
+      .bindPopup(`<b>${esc(c.nome)}</b><br>${esc(RES.find(r => r.k === c.res).txt)} · ${br(c.dVisita)}<br>Vendedor: ${esc(c.vendedor)}` +
+        (c.preco ? `<br>Proposta: ${brl(c.preco)}/mês` : '') + (c.pasta ? `<br><a href="${esc(c.pasta)}" target="_blank" rel="noopener">Ver fotos</a>` : ''))
+      .addTo(camada);
+  });
+  if (pts.length) mapaL.fitBounds(L.latLngBounds(pts.map(c => [c.lat, c.lng])).pad(0.2), { maxZoom: 14 });
+  setTimeout(() => mapaL.invalidateSize(), 50);
+}
+
+/* ---------- Tabela por vendedor ---------- */
+function tabelaVendedores(){
+  const vs = dados.vendedores.filter(v => filtro.vend === 'todos' || v.cpf === filtro.vend);
+  if (!vs.length) return $('#tbVend').innerHTML = '<div class="empty">Nenhum vendedor cadastrado ainda.</div>';
+  const linhas = vs.map(v => {
+    const vis = visitasP.filter(c => c.vcpf === v.cpf), con = contratosP.filter(c => c.vcpf === v.cpf);
+    const conv = vis.length ? Math.round(vis.filter(c => c.res === 'contrato').length / vis.length * 100) : 0;
+    const meta = metaDe(v.cpf), fm = contratosMesDe(v.cpf), pct = meta ? Math.round(fm / meta * 100) : null;
+    return { v, vis: vis.length, pres: vis.filter(c => c.modalidade === 'Presencial').length, con: con.length, prop: vis.filter(c => c.res === 'proposta').length,
+      conv, valor: con.reduce((s, c) => s + c.preco, 0), meta, fm, pct, cart: dados.clientes.filter(c => c.vcpf === v.cpf && !c.res).length };
+  }).sort((a, b) => b.con - a.con || b.vis - a.vis);
+  $('#tbVend').innerHTML = `<table class="tbl"><thead><tr><th>Vendedor</th><th class="num">Visitas</th><th class="num">Presenciais</th><th class="num">Propostas</th><th class="num">Contratos</th><th class="num">Conversão</th><th class="num">Valor mensal</th><th>Meta do mês</th><th class="num">A visitar</th></tr></thead><tbody>` +
+    linhas.map(l => `<tr><td><b>${esc(l.v.nome)}</b></td><td class="num">${l.vis}</td><td class="num">${l.pres}</td><td class="num">${l.prop}</td><td class="num"><b>${l.con}</b></td>
+      <td class="num">${l.conv}%</td><td class="num">${brl(l.valor)}</td>
+      <td>${l.meta ? `${l.fm}/${l.meta} <span class="chip ${faixa(l.fm / l.meta * 100)}">${l.pct}%</span>` : '<span class="chip s-none">sem meta</span>'}</td><td class="num">${l.cart}</td></tr>`).join('') + '</tbody></table>';
+}
+
+/* ---------- Tabela de visitas ---------- */
+let limiteVisitas = 30;
+function visitasFiltradas(){
+  const q = $('#busca').value.trim().toLowerCase();
+  return visitasP.filter(c => !q || [c.nome, c.cidade, c.bairro, c.vendedor, c.concorrente].some(x => String(x || '').toLowerCase().includes(q)))
+    .sort((a, b) => b.dVisita - a.dVisita);
+}
+function tabelaVisitas(){
+  const lista = visitasFiltradas();
+  if (!lista.length) return $('#tbVisitas').innerHTML = '<div class="empty">Nenhuma visita encontrada.</div>';
+  $('#tbVisitas').innerHTML = `<table class="tbl"><thead><tr><th>Data</th><th>Cliente</th><th>Vendedor</th><th>Modalidade</th><th>Resultado</th><th class="num">Proposta</th><th></th></tr></thead><tbody>` +
+    lista.slice(0, limiteVisitas).map(c => { const r = RES.find(x => x.k === c.res);
+      return `<tr><td class="nw">${br(c.dVisita)}</td><td><b>${esc(c.nome)}</b><br><small style="color:var(--muted)">${esc(c.cidade)}${c.concorrente ? ' · atende: ' + esc(c.concorrente) : ''}</small></td>
+        <td class="nw">${esc(c.vendedor)}</td><td>${esc(c.modalidade || '—')}</td>
+        <td><span class="tag"><i style="background:${cor(c.res)}"></i>${r.txt}</span></td>
+        <td class="num nw">${c.preco ? brl(c.preco) + '<br><small style="color:var(--muted)">' + esc(c.freq) + '</small>' : '—'}</td>
+        <td style="white-space:nowrap">${c.mapa ? `<a href="${esc(c.mapa)}" target="_blank" rel="noopener">mapa</a>` : ''}${c.pasta ? ` · <a href="${esc(c.pasta)}" target="_blank" rel="noopener">fotos</a>` : ''}</td></tr>`; }).join('') +
+    '</tbody></table>' + (lista.length > limiteVisitas ? `<button class="more" onclick="limiteVisitas+=30;tabelaVisitas()">Mostrar mais (${lista.length - limiteVisitas})</button>` : '');
+}
+function baixarCSV(){
+  const lista = visitasFiltradas(), sep = ';';
+  const cab = ['Data da visita', 'Cliente', 'Cidade', 'Bairro', 'Vendedor', 'Modalidade', 'Resultado', 'Motivo', 'Preço (R$)', 'Frequência', 'Franquia (kg/mês)', 'Excedente (R$/kg)', 'Empresa concorrente', 'Data do contrato', 'Mapa', 'Fotos'];
+  const q = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+  const linhas = lista.map(c => [br(c.dVisita), c.nome, c.cidade, c.bairro, c.vendedor, c.modalidade, RES.find(r => r.k === c.res).txt, c.motivo,
+    c.preco ? c.preco.toFixed(2).replace('.', ',') : '', c.freq, c.franquia, c.excedente, c.concorrente, br(c.dContrato), c.mapa, c.pasta].map(q).join(sep));
+  const blob = new Blob(['﻿' + [cab.map(q).join(sep), ...linhas].join('\r\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `visitas_${ymd(P.ini)}_a_${ymd(P.fim)}.csv`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+
+/* ---------- Carteira e concorrentes ---------- */
+function carteira(){
+  const vs = dados.vendedores.filter(v => filtro.vend === 'todos' || v.cpf === filtro.vend)
+    .map(v => ({ v, n: dados.clientes.filter(c => c.vcpf === v.cpf && !c.res).length, and: dados.clientes.filter(c => c.vcpf === v.cpf && !c.res && c.status === 'Visita em andamento').length }))
+    .filter(x => x.n).sort((a, b) => b.n - a.n);
+  if (!vs.length) return $('#chCarteira').innerHTML = '<div class="empty">Nenhum cliente aguardando visita.</div>';
+  const max = Math.max(...vs.map(x => x.n));
+  $('#chCarteira').innerHTML = vs.map(x => `<div class="hbar"><div class="n">${esc(x.v.nome)}</div><div class="tr"><div class="fl" style="width:${x.n / max * 100}%;background:var(--green)"></div></div><div class="val">${x.n}${x.and ? ` <small>${x.and} em andamento</small>` : ''}</div></div>`).join('');
+}
+function concorrentes(){
+  const cont = {}; visitasP.filter(c => c.res === 'outraEmpresa' && c.concorrente).forEach(c => { const k = String(c.concorrente).trim(); cont[k] = (cont[k] || 0) + 1; });
+  const lista = Object.entries(cont).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  if (!lista.length) return $('#chConc').innerHTML = '<div class="empty">Nenhum concorrente citado no período.</div>';
+  const max = lista[0][1];
+  $('#chConc').innerHTML = lista.map(([n, q]) => `<div class="hbar"><div class="n" title="${esc(n)}">${esc(n)}</div><div class="tr"><div class="fl" style="width:${q / max * 100}%;background:var(--r-outraEmpresa)"></div></div><div class="val">${q}</div></div>`).join('');
+}
+
+let rsz; window.addEventListener('resize', () => { clearTimeout(rsz); rsz = setTimeout(() => { if (dados) graficoDias(); }, 150); });
+
+/* ---------- início ---------- */
+if (senha) iniciar(); else $('#login').classList.remove('hidden');
+</script>
+</body>
+</html>
