@@ -121,6 +121,19 @@
   .pc2:hover{transform:translateY(-2px);box-shadow:0 2px 4px rgba(20,50,30,.08),0 12px 28px rgba(20,50,30,.12)}
   .pc2:focus-visible{outline:3px solid var(--lime)}
   .pc2.parada{background:#fff8f8}
+  .pc2.forap{box-shadow:0 0 0 2px var(--orange),var(--shadow)}
+  .pc2-fora{margin:-16px -16px 6px;padding:6px 16px;background:var(--orange);color:#fff;font-size:12.5px;font-weight:700;border-radius:12px 12px 0 0}
+  .btn-red{background:var(--red);color:#fff}
+  .mact{flex-wrap:wrap} .mact .btn{white-space:nowrap}
+  .btn-mini{padding:6px 10px;border-radius:8px;font-size:12.5px;font-weight:700;background:#eef1ec;color:var(--ink);white-space:nowrap}
+  .btn-mini.red{background:var(--red-bg);color:#b53030}
+  .rgrp{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px}
+  .rgh{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
+  .rrow{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--grid);font-size:14px}
+  .rrow .rf{width:90px;font-weight:600} .rrow .rv{flex:1;color:var(--muted)}
+  .pvig{background:var(--lime-soft);border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:13.5px;display:flex;flex-direction:column;gap:4px}
+  .pvig span{display:flex;flex-wrap:wrap;gap:6px;align-items:center} .pvig em{font-style:normal;background:#fff;border-radius:8px;padding:3px 8px;font-size:12.5px}
+  .pvig small{color:var(--muted)}
   .pc2-h{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
   .pc2-h .dot{width:9px;height:9px;border-radius:50%;background:var(--st)}
   .pc2-h .st{flex:1}
@@ -317,7 +330,7 @@
    ========================================================= */
 const API = 'https://script.google.com/macros/s/AKfycbyKfrfeTPq8MrBbIGsZp54_6l8yPKWDV6omrG7GCBlrfpzkTktzhdd8gUBlSdFivvGU/exec';
 const ATUALIZAR_A_CADA_MIN = 5;
-const VERSAO = '7';
+const VERSAO = '8';
 
 /* ---------- utilidades ---------- */
 const $ = s => document.querySelector(s);
@@ -384,11 +397,11 @@ function abrirParametros(){
   const cidadesDados = [...new Set(dados.clientes.map(c => String(c.cidade || '').trim()).filter(Boolean))];
   const bg = document.createElement('div'); bg.className = 'modal-bg';
   bg.innerHTML = `<div class="modal modal-lg"><h3>⚙ Parâmetros comerciais</h3>
-    <p>Valores mínimos por frequência de coleta. As propostas abaixo destes valores aparecem sinalizadas no painel. Use uma cidade específica para campanhas: os campos vazios da cidade seguem o padrão.</p>
     <div class="pscope"><label>Aplicar em</label><select data-scope></select><input data-nova placeholder="Nome da cidade" class="hidden"></div>
+    <div data-vig></div>
     <div data-tab></div>
     <div data-cids class="pcids"></div>
-    <div class="mact"><button class="btn btn-soft" data-x>Cancelar</button><button class="btn btn-green" data-s>Salvar parâmetros</button></div></div>`;
+    <div class="mact"><button class="btn btn-red" data-reset>Redefinir todos os parâmetros</button><span style="flex:1"></span><button class="btn btn-soft" data-x>Cancelar</button><button class="btn btn-green" data-s>Salvar parâmetros</button></div></div>`;
   document.body.appendChild(bg);
   let escopo = '';
   const sel = bg.querySelector('[data-scope]'), nova = bg.querySelector('[data-nova]');
@@ -407,9 +420,19 @@ function abrirParametros(){
       return `<td><div class="pin">${pre ? `<em>${pre}</em>` : ''}<input type="number" min="0" step="0.01" data-f="${f}" data-k="${k}" value="${v === undefined ? '' : v}" placeholder="${ph}">${suf ? `<em>${suf}</em>` : ''}</div></td>`; };
     bg.querySelector('[data-tab]').innerHTML = `<table class="ptab"><thead><tr><th>Frequência</th><th>Valor mínimo</th><th>Franquia mínima</th><th>Excedente mínimo</th></tr></thead><tbody>
       ${FREQS.map(f => `<tr><td><b>${f}</b></td>${campo(f, 'valor', 'R$', '/mês')}${campo(f, 'franquia', '', 'kg')}${campo(f, 'excedente', 'R$', '/kg')}</tr>`).join('')}</tbody></table>
-      ${escopo ? `<button class="lnk" style="margin-top:10px;background:var(--red-bg);color:#b53030" data-rm>Remover parâmetros de ${esc(escopo)}</button>` : ''}`;
+      ${escopo && trabalho.some(r => semAcento(r.cidade) === semAcento(escopo)) ? `<button class="lnk" style="margin-top:10px;background:var(--red-bg);color:#b53030" data-rm>Redefinir parâmetros de ${esc(escopo)}</button>` : ''}`;
+    // Resumo do que vale para a cidade escolhida (próprio ou padrão)
+    const vig = bg.querySelector('[data-vig]');
+    if (!escopo) { vig.innerHTML = ''; }
+    else {
+      const proprio = trabalho.some(r => semAcento(r.cidade) === semAcento(escopo));
+      vig.innerHTML = `<div class="pvig"><b>${proprio ? `★ ${esc(escopo)} tem parâmetros próprios` : `${esc(escopo)} ainda usa o padrão`}</b>
+        <span>Vigente hoje: ${FREQS.map(f => { const r = regraPara(escopo, f, trabalho); return r ? `<em>${f}: ${r.valor !== '' ? brl(r.valor) : '—'} · ${r.franquia !== '' ? r.franquia + ' kg' : '—'} · ${r.excedente !== '' ? brl(r.excedente) + '/kg' : '—'}</em>` : ''; }).filter(Boolean).join('') || '<em>nenhum parâmetro</em>'}</span>
+        <small>${proprio ? 'Campos vazios desta cidade seguem o padrão.' : 'Preencha abaixo só o que for diferente do padrão (ex.: campanha).'}</small></div>`;
+    }
     const rm = bg.querySelector('[data-rm]');
-    if (rm) rm.onclick = () => { trabalho = trabalho.filter(r => semAcento(r.cidade) !== semAcento(escopo)); escopo = ''; montarEscopos(); tabela(); };
+    if (rm) rm.onclick = () => { if (!confirm(`Redefinir ${escopo} para o padrão? Os parâmetros próprios desta cidade serão apagados ao salvar.`)) return;
+      trabalho = trabalho.filter(r => semAcento(r.cidade) !== semAcento(escopo)); montarEscopos(); tabela(); };
   };
   const guardar = () => {
     bg.querySelectorAll('[data-tab] input').forEach(i => {
@@ -430,9 +453,40 @@ function abrirParametros(){
   nova.onblur = () => nova.onkeydown({ key: 'Enter' });
   montarEscopos(); tabela();
   bg.onclick = e => { if (e.target === bg || e.target.closest('[data-x]')) bg.remove(); };
+  const gravar = async () => { await api('painelSalvarParametros', { dados: { parametros: trabalho } }); dados.parametros = trabalho.map(r => ({ ...r })); };
+
+  // ----- Redefinir: lista de todos os parâmetros por cidade, com exclusão imediata -----
+  bg.querySelector('[data-reset]').onclick = () => {
+    guardar();
+    const sub = document.createElement('div'); sub.className = 'modal-bg';
+    const desenhar = () => {
+      const grupos = [...new Set(trabalho.map(r => r.cidade))].sort((a, b) => (a ? 1 : 0) - (b ? 1 : 0) || a.localeCompare(b));
+      const fmt = r => `${r.valor !== '' ? brl(r.valor) + '/mês' : '—'} · ${r.franquia !== '' ? r.franquia + ' kg' : '—'} · ${r.excedente !== '' ? brl(r.excedente) + '/kg' : '—'}`;
+      sub.innerHTML = `<div class="modal modal-lg"><h3>Redefinir parâmetros</h3>
+        <p>Parâmetros cadastrados, por cidade. A exclusão é gravada na hora.</p>
+        ${grupos.length ? grupos.map(g => `<div class="rgrp"><div class="rgh"><b>${g ? esc(g) : 'Todas as cidades (padrão)'}</b>
+            <button class="btn-mini red" data-delc="${esc(g)}">Excluir ${g ? 'todos desta cidade' : 'todo o padrão'}</button></div>
+          ${FREQS.filter(f => trabalho.some(r => r.cidade === g && r.freq === f)).map(f => { const r = trabalho.find(x => x.cidade === g && x.freq === f);
+            return `<div class="rrow"><span class="rf">${f}</span><span class="rv">${fmt(r)}</span><button class="btn-mini" data-delf="${esc(f)}" data-cid="${esc(g)}">Excluir</button></div>`; }).join('')}</div>`).join('')
+          : '<div class="empty">Nenhum parâmetro cadastrado.</div>'}
+        ${grupos.length ? `<button class="btn btn-red" data-all style="margin-top:14px">Excluir TODOS os parâmetros</button>` : ''}
+        <div class="mact"><span style="flex:1"></span><button class="btn btn-green" data-ok>Concluir</button></div></div>`;
+      const excluir = async (filtroFn, msg) => { if (!confirm(msg)) return;
+        const antes = trabalho; trabalho = trabalho.filter(r => !filtroFn(r));
+        try { await gravar(); toast('Parâmetro excluído.'); } catch (e) { trabalho = antes; toast('Erro ao excluir: ' + e.message); }
+        desenhar(); montarEscopos(); tabela(); render(); };
+      sub.querySelectorAll('[data-delc]').forEach(b => b.onclick = () => excluir(r => r.cidade === b.dataset.delc, `Excluir todos os parâmetros de ${b.dataset.delc || 'padrão (todas as cidades)'}?`));
+      sub.querySelectorAll('[data-delf]').forEach(b => b.onclick = () => excluir(r => r.cidade === b.dataset.cid && r.freq === b.dataset.delf, `Excluir o parâmetro de ${b.dataset.delf} em ${b.dataset.cid || 'todas as cidades'}?`));
+      const all = sub.querySelector('[data-all]'); if (all) all.onclick = () => excluir(() => true, 'Excluir TODOS os parâmetros cadastrados? As propostas deixam de ser sinalizadas.');
+      sub.querySelector('[data-ok]').onclick = () => sub.remove();
+    };
+    desenhar(); document.body.appendChild(sub);
+    sub.onclick = e => { if (e.target === sub) sub.remove(); };
+  };
+
   bg.querySelector('[data-s]').onclick = async () => {
     guardar(); const b = bg.querySelector('[data-s]'); b.textContent = 'Salvando…';
-    try { await api('painelSalvarParametros', { dados: { parametros: trabalho } }); bg.remove(); toast('Parâmetros salvos!'); carregar(); }
+    try { await gravar(); bg.remove(); toast('Parâmetros salvos!'); carregar(); }
     catch (e) { toast('Erro ao salvar: ' + e.message); b.textContent = 'Salvar parâmetros'; }
   };
 }
@@ -560,7 +614,8 @@ function kpis(cs){
     : `<div class="kpi"><div class="t">${titulo}</div><div class="v">${v}</div><div class="d">${d}</div></div>`;
   $('#kpis').innerHTML =
     t('Visitas realizadas', visitasP.length, delta(visitasP.length, visAnt), 'visitas') +
-    t('Contratos fechados', contratosP.length, delta(contratosP.length, conAnt.length), 'contratos') +
+    t('Contratos fechados', contratosP.length, delta(contratosP.length, conAnt.length) +
+      (contratosP.filter(foraParam).length ? `<br><b style="color:#b86a00">⚠ ${contratosP.filter(foraParam).length} fora do parâmetro</b>` : ''), 'contratos') +
     t('Valor mensal contratado', brlK(valor), delta(valor, valorAnt, brlK)) +
     t('Taxa de conversão', conv + '%', `${convN} contrato(s) em ${visitasP.length} visita(s)`) +
     t('Propostas em aberto', props.length, (props.length ? brlK(valorProps) + ' por mês em negociação' : 'nenhuma no período') +
@@ -854,12 +909,13 @@ function cardCliente(c, L){
   const corSt = parada ? 'var(--red)' : r ? cor(c.res) : 'var(--lime)';
   const idade = c.res === 'proposta' && dias !== null ? `<span class="age ${parada ? 'critico' : dias > 7 ? 'alerta' : ''}">${dias === 0 ? 'hoje' : dias + (dias === 1 ? ' dia' : ' dias')}</span>` : '';
   const fora = foraParam(c);
-  return `<button class="pc2 ${parada ? 'parada' : ''}" style="--st:${corSt}" onclick="abrirDetalhe('${esc(c.id)}')" title="Abrir resumo em nova guia">
+  return `<button class="pc2 ${parada ? 'parada' : ''} ${fora ? 'forap' : ''}" style="--st:${corSt}" onclick="abrirDetalhe('${esc(c.id)}')" title="Abrir resumo em nova guia">
+    ${fora ? `<div class="pc2-fora">⚠ Fora do parâmetro comercial</div>` : ''}
     <div class="pc2-h"><span class="dot"></span><span class="st">${st}</span>${idade}</div>
     <div class="pc2-n">${esc(c.nome)}</div>
     <div class="pc2-s">${esc(c.cidade || '—')} · ${esc(c.vendedor || '')}</div>
     ${c.preco ? `<div class="pc2-v">${brl(c.preco)}<small>/mês · ${esc(c.freq || '')}</small></div>` : `<div class="pc2-v pc2-v0">${c.concorrente ? 'Atende hoje: ' + esc(c.concorrente) : 'Sem proposta'}</div>`}
-    <div class="pc2-f"><span>${L.rotData} ${br(d) || '—'}</span>${fora ? '<span class="fora">⚠ Fora do parâmetro</span>' : ''}<span class="abrir">Resumo ↗</span></div>
+    <div class="pc2-f"><span>${L.rotData} ${br(d) || '—'}</span><span class="abrir">Resumo ↗</span></div>
   </button>`;
 }
 
