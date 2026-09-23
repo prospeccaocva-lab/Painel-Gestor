@@ -47,6 +47,21 @@
   .top h1{margin:0;font-size:20px;font-weight:600;flex:1;min-width:160px;padding-left:16px;border-left:1px solid rgba(255,255,255,.35)}
   .top .upd{font-size:13px;opacity:.85}
   .tbtn{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border-radius:10px;background:rgba(255,255,255,.14);font-weight:600;font-size:14px;color:#fff}
+  .tbtn-lime{background:var(--lime);color:#1d2a05} .tbtn-lime:hover{background:#c2dc1f}
+  .sits{display:flex;flex-wrap:wrap;gap:8px;margin:-4px 0 16px}
+  .sit{display:flex;align-items:center;gap:8px;background:var(--surface);border-radius:12px;box-shadow:var(--shadow);padding:9px 12px;font-size:13.5px;border:2px solid transparent}
+  .sit b{font-size:17px} .sit i{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .sit.on{border-color:var(--green)} .sit.tot{background:#eaf5ed}
+  .gauges{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+  .gauge{text-align:center;padding:8px 6px 12px;border-radius:14px;background:#fafcf9;border:1px solid var(--grid)}
+  .gauge.team{background:#eef6f0;border-color:#d5ead9}
+  .gauge svg{width:100%;max-width:190px;display:block;margin:0 auto}
+  .gauge .gn{font-weight:700;font-size:14px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .gauge .gd{font-size:12.5px;color:var(--muted)}
+  .clock{display:flex;flex-direction:column;align-items:center}
+  .clock svg{width:100%;max-width:340px}
+  .clock .ct{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin-top:6px;font-size:14px;color:var(--muted);text-align:center}
+  .clock .ct b{display:block;font-size:24px;color:var(--ink)}
   .tbtn:hover{background:rgba(255,255,255,.22)}
   main{max-width:1320px;margin:-50px auto 0;padding:0 24px 48px;position:relative}
 
@@ -57,6 +72,8 @@
   .seg button.on{background:var(--surface);color:var(--green-d);box-shadow:0 1px 3px rgba(0,0,0,.1)}
   .filters select,.filters input[type=date]{padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:#fbfcfa;font-size:14px}
   .filters .sp{flex:1}
+  .fg{display:inline-flex;align-items:center;gap:8px}
+  .fg select{max-width:230px}
   .filters .lbl{font-size:13px;color:var(--muted);font-weight:600}
 
   /* ---------- KPIs ---------- */
@@ -65,6 +82,29 @@
   .kpi .t{font-size:13px;color:var(--muted);font-weight:600}
   .kpi .v{font-size:30px;font-weight:800;margin:6px 0 4px;line-height:1.05}
   .kpi .d{font-size:12.5px;color:var(--muted)}
+  .kpi-link{text-align:left;cursor:pointer;border:2px solid transparent;transition:border-color .15s,transform .1s;width:100%;font:inherit;color:inherit}
+  .kpi-link:hover{border-color:var(--green)} .kpi-link:active{transform:scale(.985)}
+  .kpi .t{display:flex;justify-content:space-between;gap:6px;align-items:baseline}
+  .kpi .ver{font-size:11.5px;color:var(--green-d);font-weight:700;white-space:nowrap;opacity:.8}
+  .kpi-link:hover .ver{opacity:1}
+  /* lista em cards */
+  .drawer-bg{position:fixed;inset:0;background:rgba(10,30,15,.5);z-index:2000;display:flex;justify-content:center;align-items:flex-start;padding:24px 16px;overflow:auto}
+  .drawer{background:var(--bg);border-radius:20px;width:100%;max-width:1200px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+  .drawer .dh{background:linear-gradient(165deg,var(--green) 0%,var(--green-dd) 100%);color:#fff;border-radius:20px 20px 0 0;padding:18px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;position:sticky;top:-24px;z-index:2}
+  .drawer .dh h3{margin:0;font-size:20px;flex:1;min-width:200px} .drawer .dh small{display:block;font-weight:500;opacity:.85;font-size:13px;margin-top:2px}
+  .drawer .dh input,.drawer .dh select{padding:9px 12px;border-radius:10px;border:0;font-size:14px}
+  .drawer .dh .x{width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.18);color:#fff;font-size:20px}
+  .dsum{display:flex;gap:10px;flex-wrap:wrap;padding:14px 20px 0}
+  .dsum div{background:var(--surface);border-radius:12px;padding:8px 14px;font-size:13px;color:var(--muted);box-shadow:var(--shadow)} .dsum b{color:var(--ink);font-size:16px;margin-right:4px}
+  .dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;padding:16px 20px 22px}
+  .pc{background:var(--surface);border-radius:16px;box-shadow:var(--shadow);padding:16px;border-left:5px solid var(--lime);display:flex;flex-direction:column;gap:8px}
+  .pc .top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+  .pc .nm{font-weight:700;font-size:16px;line-height:1.25} .pc .meta{font-size:13px;color:var(--muted)}
+  .pc .vals{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .pc .vals div{background:#f5f8f3;border-radius:10px;padding:7px 10px} .pc .vals small{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:600} .pc .vals b{font-size:14px}
+  .pc .lk{display:flex;gap:12px;font-size:13px;font-weight:600;flex-wrap:wrap;margin-top:auto;padding-top:4px}
+  .pc .dias{font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px;background:#eef1ec;color:var(--muted);white-space:nowrap}
+  .pc .dias.alerta{background:var(--orange-bg);color:#a85f00}
   .kpi .d b.up{color:var(--ok)} .kpi .d b.down{color:var(--red)}
 
   /* ---------- Cartões ---------- */
@@ -151,6 +191,7 @@
     <h1>Painel da Gerência · Vendas Externas</h1>
     <span class="upd" id="upd"></span>
     <button class="tbtn" onclick="carregar()">⟳ Atualizar</button>
+    <button class="tbtn tbtn-lime" onclick="abrirMetas()">🎯 Definir metas</button>
     <button class="tbtn" onclick="sair()">Sair</button>
   </div></header>
 
@@ -163,11 +204,19 @@
       </div>
       <span id="customBox" class="hidden"><input type="date" id="dIni"> até <input type="date" id="dFim"></span>
       <span class="sp"></span>
-      <span class="lbl">Vendedor</span>
-      <select id="selVend"></select>
+      <span class="fg"><span class="lbl">Vendedor</span><select id="selVend"></select></span>
+      <span class="fg"><span class="lbl">Cidade</span><select id="selCid"></select></span>
+      <span class="fg"><span class="lbl">Situação</span><select id="selSit"></select></span>
     </div>
 
     <div class="kpis" id="kpis"></div>
+
+    <div class="sits" id="sits"></div>
+
+    <div class="grid g32">
+      <div class="card"><h2>Visitômetro</h2><p class="sub">Agenda do período: clientes que estavam para visitar × visitas finalizadas</p><div class="gauges" id="chVisitometro"></div></div>
+      <div class="card"><h2>Relógio de conversão</h2><p class="sub">Clientes visitados no período que fecharam contrato</p><div id="chConversao"></div></div>
+    </div>
 
     <div class="grid g32">
       <div class="card"><h2>Visitas por dia <span></span></h2><p class="sub" id="subDias">Resultado de cada visita finalizada</p><div class="chart" id="chDias"></div><div class="legend" id="legDias"></div></div>
@@ -175,7 +224,7 @@
     </div>
 
     <div class="grid g23">
-      <div class="card"><h2>Meta do mês <button class="lnk" onclick="abrirMetas()">Definir metas</button></h2><p class="sub" id="subMeta">Contratos fechados no mês atual</p><div id="chMeta"></div></div>
+      <div class="card"><h2>Meta do mês</h2><p class="sub" id="subMeta">Contratos fechados no mês atual</p><div id="chMeta"></div></div>
       <div class="card"><h2>Mapa das visitas</h2><p class="sub">Check-ins registrados no período</p><div id="mapa"></div>
         <div class="legend"><span><i style="background:var(--r-contrato)"></i>Contrato fechado</span><span><i style="background:var(--r-proposta)"></i>Proposta enviada</span><span><i style="background:var(--r-outraEmpresa)"></i>Outros resultados</span></div></div>
     </div>
@@ -188,7 +237,7 @@
     </div>
 
     <div class="grid">
-      <div class="card"><h2>Visitas realizadas <span style="display:flex;gap:8px"><input class="search" id="busca" placeholder="Buscar cliente, cidade…"><button class="lnk" onclick="baixarCSV()">Baixar CSV</button></span></h2>
+      <div class="card"><h2><span id="tbTitulo">Visitas realizadas</span> <span style="display:flex;gap:8px"><input class="search" id="busca" placeholder="Buscar cliente, cidade…"><button class="lnk" onclick="baixarCSV()">Baixar CSV</button></span></h2>
         <p class="sub">Mais recentes primeiro</p><div class="tscroll" id="tbVisitas"></div></div>
     </div>
   </main>
@@ -275,7 +324,7 @@ function normalizar(j){
 }
 
 /* ---------- filtros ---------- */
-const filtro = { p: 'mes', vend: 'todos', ini: null, fim: null };
+const filtro = { p: 'mes', vend: 'todos', cid: 'todas', sit: 'todas', ini: null, fim: null };
 function periodo(){
   const h = new Date(); h.setHours(0, 0, 0, 0); let ini, fim;
   if (filtro.p === 'mes') { ini = new Date(h.getFullYear(), h.getMonth(), 1); fim = h; }
@@ -295,13 +344,29 @@ document.querySelectorAll('#segPeriodo button').forEach(b => b.onclick = () => {
 });
 ['#dIni', '#dFim'].forEach(s => $(s).onchange = render);
 $('#selVend').onchange = e => { filtro.vend = e.target.value; render(); };
+$('#selCid').onchange = e => { filtro.cid = e.target.value; render(); };
+$('#selSit').onchange = e => { filtro.sit = e.target.value; render(); };
+const SITS = [ { k: 'todas', txt: 'Todas as situações' }, { k: 'programadas', txt: 'Programadas (agenda do período)' }, { k: 'realizadas', txt: 'Realizadas (finalizadas)' },
+  { k: 'pendente', txt: 'A visitar' }, { k: 'andamento', txt: 'Visita em andamento' }, ...RES.map(r => ({ k: r.k, txt: r.txt })) ];
 $('#busca').oninput = () => { limiteVisitas = 30; tabelaVisitas(); };
 function montarFiltroVend(){
   const s = $('#selVend'), atual = filtro.vend;
   s.innerHTML = '<option value="todos">Todos os vendedores</option>' + dados.vendedores.map(v => `<option value="${v.cpf}">${esc(v.nome)}</option>`).join('');
   s.value = dados.vendedores.some(v => v.cpf === atual) ? atual : 'todos'; filtro.vend = s.value;
+  const cids = [...new Set(dados.clientes.map(c => c.cidade).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const sc = $('#selCid'); sc.innerHTML = '<option value="todas">Todas as cidades</option>' + cids.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  sc.value = cids.includes(filtro.cid) ? filtro.cid : 'todas'; filtro.cid = sc.value;
+  $('#selSit').innerHTML = SITS.map(x => `<option value="${x.k}">${x.txt}</option>`).join(''); $('#selSit').value = filtro.sit;
 }
-const doVend = c => filtro.vend === 'todos' || c.vcpf === filtro.vend;
+const doVend = c => (filtro.vend === 'todos' || c.vcpf === filtro.vend) && (filtro.cid === 'todas' || c.cidade === filtro.cid);
+// Agenda do período: cadastrado até o fim do período e ainda sem visita no início dele
+const programada = c => (!c.dCadastro || c.dCadastro <= new Date(P.fim.getFullYear(), P.fim.getMonth(), P.fim.getDate(), 23, 59, 59)) && (!c.res || !c.dVisita || c.dVisita >= P.ini);
+const naSituacao = c => { const f = filtro.sit;
+  if (f === 'todas' || f === 'realizadas') return !!(c.res && dentro(c.dVisita, P.ini, P.fim));
+  if (f === 'programadas') return programada(c);
+  if (f === 'pendente') return !c.res && c.status !== 'Visita em andamento';
+  if (f === 'andamento') return !c.res && c.status === 'Visita em andamento';
+  return c.res === f && dentro(c.dVisita, P.ini, P.fim); };
 
 /* ---------- tooltip ---------- */
 const tip = $('#tip');
@@ -313,15 +378,16 @@ const esconderTip = () => tip.classList.remove('show');
 /* =========================================================
    RENDER
    ========================================================= */
-let P, visitasP, contratosP;
+let P, visitasP, contratosP, clientesF;
 function render(){
   if (!dados) return;
   document.querySelectorAll('#segPeriodo button').forEach(b => b.classList.toggle('on', b.dataset.p === filtro.p));
   P = periodo();
-  const cs = dados.clientes.filter(doVend);
+  const cs = dados.clientes.filter(doVend); clientesF = cs;
   visitasP = cs.filter(c => c.res && dentro(c.dVisita, P.ini, P.fim));
   contratosP = cs.filter(c => c.res === 'contrato' && dentro(c.dContrato, P.ini, P.fim));
-  kpis(cs); graficoDias(); resultados(); metas(); mapa(); tabelaVendedores(); limiteVisitas = 30; tabelaVisitas(); carteira(); concorrentes();
+  $('#selSit').value = filtro.sit;
+  kpis(cs); situacoes(cs); visitometro(cs); relogio(); graficoDias(); resultados(); metas(); mapa(); tabelaVendedores(); limiteVisitas = 30; tabelaVisitas(); carteira(); concorrentes();
 }
 
 function delta(atual, ant, fmt = v => v){
@@ -337,14 +403,71 @@ function kpis(cs){
   const conv = visitasP.length ? Math.round(convN / visitasP.length * 100) : 0;
   const props = visitasP.filter(c => c.res === 'proposta'), valorProps = props.reduce((s, c) => s + c.preco, 0);
   const aVisitar = cs.filter(c => !c.res).length;
-  const t = (titulo, v, d) => `<div class="kpi"><div class="t">${titulo}</div><div class="v">${v}</div><div class="d">${d}</div></div>`;
+  const t = (titulo, v, d, lista) => lista && Number(String(v).replace(/\D/g, '')) > 0
+    ? `<button class="kpi kpi-link" onclick="abrirLista('${lista}')"><div class="t">${titulo}<span class="ver">Ver cards →</span></div><div class="v">${v}</div><div class="d">${d}</div></button>`
+    : `<div class="kpi"><div class="t">${titulo}</div><div class="v">${v}</div><div class="d">${d}</div></div>`;
   $('#kpis').innerHTML =
-    t('Visitas realizadas', visitasP.length, delta(visitasP.length, visAnt)) +
-    t('Contratos fechados', contratosP.length, delta(contratosP.length, conAnt.length)) +
+    t('Visitas realizadas', visitasP.length, delta(visitasP.length, visAnt), 'visitas') +
+    t('Contratos fechados', contratosP.length, delta(contratosP.length, conAnt.length), 'contratos') +
     t('Valor mensal contratado', brlK(valor), delta(valor, valorAnt, brlK)) +
     t('Taxa de conversão', conv + '%', `${convN} contrato(s) em ${visitasP.length} visita(s)`) +
-    t('Propostas em aberto', props.length, props.length ? brlK(valorProps) + ' por mês em negociação' : 'nenhuma no período') +
-    t('Carteira a visitar', aVisitar, 'clientes aguardando visita');
+    t('Propostas em aberto', props.length, props.length ? brlK(valorProps) + ' por mês em negociação' : 'nenhuma no período', 'propostas') +
+    t('Carteira a visitar', aVisitar, 'clientes aguardando visita', 'carteira');
+}
+
+/* ---------- Situação das visitas (contagens clicáveis) ---------- */
+function situacoes(cs){
+  const n = k => cs.filter(c => { const s = filtro.sit; filtro.sit = k; const r = naSituacao(c); filtro.sit = s; return r; }).length;
+  const item = (k, txt, corr, extra = '') => `<button class="sit ${extra} ${filtro.sit === k ? 'on' : ''}" data-sit="${k}">${corr ? `<i style="background:${corr}"></i>` : ''}<span>${txt}</span><b>${n(k)}</b></button>`;
+  $('#sits').innerHTML = item('programadas', 'Programadas', '', 'tot') + item('realizadas', 'Realizadas', '', 'tot') +
+    item('pendente', 'A visitar', 'var(--lime)') + item('andamento', 'Em andamento', '#c9d2c6') +
+    RES.map(r => item(r.k, r.txt, cor(r.k))).join('');
+  $('#sits').querySelectorAll('[data-sit]').forEach(b => b.onclick = () => { filtro.sit = filtro.sit === b.dataset.sit ? 'todas' : b.dataset.sit; render();
+    document.querySelector('#tbTitulo').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+}
+
+/* ---------- Medidores (semicírculo) ---------- */
+function arco(cx, cy, r, a0, a1){ // ângulos em graus, 180 = esquerda, 0 = direita
+  const p = a => [cx + r * Math.cos(a * Math.PI / 180), cy - r * Math.sin(a * Math.PI / 180)];
+  const [x0, y0] = p(a0), [x1, y1] = p(a1);
+  return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${r} ${r} 0 ${a0 - a1 > 180 ? 1 : 0} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;
+}
+function medidor(frac, corArco, centro, rodape, { agulha = false, larg = 200 } = {}){
+  const W = larg, cx = W / 2, cy = W * 0.5, r = W * 0.4, sw = W * 0.085, f = Math.max(0, Math.min(1, frac));
+  let g = `<path d="${arco(cx, cy, r, 180, 0)}" fill="none" stroke="var(--grid)" stroke-width="${sw}" stroke-linecap="round"/>`;
+  if (f > 0) g += `<path d="${arco(cx, cy, r, 180, 180 - 180 * f)}" fill="none" stroke="${corArco}" stroke-width="${sw}" stroke-linecap="round"/>`;
+  if (agulha) {
+    for (let t = 0; t <= 10; t++) { const a = (180 - t * 18) * Math.PI / 180, r1 = r - sw * 0.9, r2 = r - sw * (t % 5 ? 1.25 : 1.6);
+      g += `<line x1="${cx + r1 * Math.cos(a)}" y1="${cy - r1 * Math.sin(a)}" x2="${cx + r2 * Math.cos(a)}" y2="${cy - r2 * Math.sin(a)}" stroke="#c5cec2" stroke-width="1.5"/>`; }
+    const a = (180 - 180 * f) * Math.PI / 180, L = r - sw * 1.8;
+    g += `<line x1="${cx}" y1="${cy}" x2="${cx + L * Math.cos(a)}" y2="${cy - L * Math.sin(a)}" stroke="var(--ink)" stroke-width="3.5" stroke-linecap="round"/><circle cx="${cx}" cy="${cy}" r="7" fill="var(--ink)"/><circle cx="${cx}" cy="${cy}" r="3" fill="#fff"/>`;
+    g += `<text x="${cx - r}" y="${cy + 22}" text-anchor="middle" font-size="11" fill="var(--muted)">0%</text><text x="${cx + r}" y="${cy + 22}" text-anchor="middle" font-size="11" fill="var(--muted)">100%</text>`;
+  } else {
+    g += `<text x="${cx}" y="${cy - 8}" text-anchor="middle" font-size="${W * 0.15}" font-weight="800" fill="var(--ink)">${centro}</text>`;
+  }
+  return `<svg viewBox="0 0 ${W} ${cy + (agulha ? 28 : 8)}" role="img" aria-label="${esc(rodape)}">${g}</svg>`;
+}
+
+/* ---------- Visitômetro: programadas × realizadas por vendedor ---------- */
+function visitometro(cs){
+  const vs = dados.vendedores.filter(v => filtro.vend === 'todos' || v.cpf === filtro.vend);
+  const calc = lista => { const prog = lista.filter(programada), feitas = prog.filter(c => c.res && dentro(c.dVisita, P.ini, P.fim)).length; return { prog: prog.length, feitas }; };
+  const bloco = (nome, { prog, feitas }, team) => {
+    const pct = prog ? Math.round(feitas / prog * 100) : 0, f = prog ? faixa(feitas / prog * 100) : 's-none';
+    return `<div class="gauge ${team ? 'team' : ''}">${medidor(prog ? feitas / prog : 0, corFaixa[f] || '#c9d2c6', prog ? pct + '%' : '—', nome)}
+      <div class="gn" title="${esc(nome)}">${esc(nome)}</div>
+      <div class="gd"><b style="color:var(--ink)">${feitas}</b> de ${prog} visitas programadas</div></div>`;
+  };
+  if (!vs.length) return $('#chVisitometro').innerHTML = '<div class="empty">Nenhum vendedor cadastrado ainda.</div>';
+  $('#chVisitometro').innerHTML = (vs.length > 1 ? bloco('Equipe', calc(cs), true) : '') + vs.map(v => bloco(v.nome, calc(cs.filter(c => c.vcpf === v.cpf)))).join('');
+}
+
+/* ---------- Relógio de conversão ---------- */
+function relogio(){
+  const vis = visitasP.length, fech = visitasP.filter(c => c.res === 'contrato').length, pct = vis ? Math.round(fech / vis * 100) : 0;
+  $('#chConversao').innerHTML = `<div class="clock">${medidor(vis ? fech / vis : 0, 'var(--green)', '', 'Conversão ' + pct + '%', { agulha: true, larg: 320 })}
+    <div style="font-size:40px;font-weight:800;margin-top:-6px">${pct}%</div>
+    <div class="ct"><div><b>${vis}</b>clientes visitados</div><div><b>${fech}</b>com contrato fechado</div><div><b>${visitasP.filter(c => c.res === 'proposta').length}</b>propostas em aberto</div></div></div>`;
 }
 
 /* ---------- Visitas por dia (colunas empilhadas) ---------- */
@@ -452,7 +575,7 @@ function mapa(){
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(mapaL);
   }
   if (camada) camada.remove(); camada = L.layerGroup().addTo(mapaL);
-  const pts = visitasP.filter(c => c.lat && c.lng);
+  const pts = clientesF.filter(c => c.res && naSituacao(c) && c.lat && c.lng && dentro(c.dVisita, P.ini, P.fim));
   pts.forEach(c => {
     const k = c.res === 'contrato' || c.res === 'proposta' ? c.res : 'outraEmpresa';
     const cr = getComputedStyle(document.documentElement).getPropertyValue('--r-' + k).trim();
@@ -474,10 +597,11 @@ function tabelaVendedores(){
     const conv = vis.length ? Math.round(vis.filter(c => c.res === 'contrato').length / vis.length * 100) : 0;
     const meta = metaDe(v.cpf), fm = contratosMesDe(v.cpf), pct = meta ? Math.round(fm / meta * 100) : null;
     return { v, vis: vis.length, pres: vis.filter(c => c.modalidade === 'Presencial').length, con: con.length, prop: vis.filter(c => c.res === 'proposta').length,
-      conv, valor: con.reduce((s, c) => s + c.preco, 0), meta, fm, pct, cart: dados.clientes.filter(c => c.vcpf === v.cpf && !c.res).length };
+      conv, valor: con.reduce((s, c) => s + c.preco, 0), meta, fm, pct, cart: clientesF.filter(c => c.vcpf === v.cpf && !c.res).length,
+      prog: clientesF.filter(c => c.vcpf === v.cpf && programada(c)).length };
   }).sort((a, b) => b.con - a.con || b.vis - a.vis);
-  $('#tbVend').innerHTML = `<table class="tbl"><thead><tr><th>Vendedor</th><th class="num">Visitas</th><th class="num">Presenciais</th><th class="num">Propostas</th><th class="num">Contratos</th><th class="num">Conversão</th><th class="num">Valor mensal</th><th>Meta do mês</th><th class="num">A visitar</th></tr></thead><tbody>` +
-    linhas.map(l => `<tr><td><b>${esc(l.v.nome)}</b></td><td class="num">${l.vis}</td><td class="num">${l.pres}</td><td class="num">${l.prop}</td><td class="num"><b>${l.con}</b></td>
+  $('#tbVend').innerHTML = `<table class="tbl"><thead><tr><th>Vendedor</th><th class="num">Programadas</th><th class="num">Visitas</th><th class="num">Presenciais</th><th class="num">Propostas</th><th class="num">Contratos</th><th class="num">Conversão</th><th class="num">Valor mensal</th><th>Meta do mês</th><th class="num">A visitar</th></tr></thead><tbody>` +
+    linhas.map(l => `<tr><td><b>${esc(l.v.nome)}</b></td><td class="num">${l.prog}</td><td class="num">${l.vis}</td><td class="num">${l.pres}</td><td class="num">${l.prop}</td><td class="num"><b>${l.con}</b></td>
       <td class="num">${l.conv}%</td><td class="num">${brl(l.valor)}</td>
       <td>${l.meta ? `${l.fm}/${l.meta} <span class="chip ${faixa(l.fm / l.meta * 100)}">${l.pct}%</span>` : '<span class="chip s-none">sem meta</span>'}</td><td class="num">${l.cart}</td></tr>`).join('') + '</tbody></table>';
 }
@@ -486,17 +610,18 @@ function tabelaVendedores(){
 let limiteVisitas = 30;
 function visitasFiltradas(){
   const q = $('#busca').value.trim().toLowerCase();
-  return visitasP.filter(c => !q || [c.nome, c.cidade, c.bairro, c.vendedor, c.concorrente].some(x => String(x || '').toLowerCase().includes(q)))
-    .sort((a, b) => b.dVisita - a.dVisita);
+  return clientesF.filter(naSituacao).filter(c => !q || [c.nome, c.cidade, c.bairro, c.vendedor, c.concorrente].some(x => String(x || '').toLowerCase().includes(q)))
+    .sort((a, b) => (b.dVisita || b.dCadastro || 0) - (a.dVisita || a.dCadastro || 0));
 }
 function tabelaVisitas(){
   const lista = visitasFiltradas();
-  if (!lista.length) return $('#tbVisitas').innerHTML = '<div class="empty">Nenhuma visita encontrada.</div>';
+  $('#tbTitulo').textContent = SITS.find(x => x.k === filtro.sit).k === 'todas' ? 'Visitas realizadas' : SITS.find(x => x.k === filtro.sit).txt;
+  if (!lista.length) return $('#tbVisitas').innerHTML = '<div class="empty">Nenhum cliente nesta situação.</div>';
   $('#tbVisitas').innerHTML = `<table class="tbl"><thead><tr><th>Data</th><th>Cliente</th><th>Vendedor</th><th>Modalidade</th><th>Resultado</th><th class="num">Proposta</th><th></th></tr></thead><tbody>` +
-    lista.slice(0, limiteVisitas).map(c => { const r = RES.find(x => x.k === c.res);
-      return `<tr><td class="nw">${br(c.dVisita)}</td><td><b>${esc(c.nome)}</b><br><small style="color:var(--muted)">${esc(c.cidade)}${c.concorrente ? ' · atende: ' + esc(c.concorrente) : ''}</small></td>
+    lista.slice(0, limiteVisitas).map(c => { const r = RES.find(x => x.k === c.res) || { txt: c.status === 'Visita em andamento' ? 'Em andamento' : 'A visitar' };
+      return `<tr><td class="nw">${c.dVisita ? br(c.dVisita) : '<small style="color:var(--muted)">cad. ' + br(c.dCadastro) + '</small>'}</td><td><b>${esc(c.nome)}</b><br><small style="color:var(--muted)">${esc(c.cidade)}${c.concorrente ? ' · atende: ' + esc(c.concorrente) : ''}</small></td>
         <td class="nw">${esc(c.vendedor)}</td><td>${esc(c.modalidade || '—')}</td>
-        <td><span class="tag"><i style="background:${cor(c.res)}"></i>${r.txt}</span></td>
+        <td><span class="tag"><i style="background:${c.res ? cor(c.res) : 'var(--lime)'}"></i>${r.txt}</span></td>
         <td class="num nw">${c.preco ? brl(c.preco) + '<br><small style="color:var(--muted)">' + esc(c.freq) + '</small>' : '—'}</td>
         <td style="white-space:nowrap">${c.mapa ? `<a href="${esc(c.mapa)}" target="_blank" rel="noopener">mapa</a>` : ''}${c.pasta ? ` · <a href="${esc(c.pasta)}" target="_blank" rel="noopener">fotos</a>` : ''}</td></tr>`; }).join('') +
     '</tbody></table>' + (lista.length > limiteVisitas ? `<button class="more" onclick="limiteVisitas+=30;tabelaVisitas()">Mostrar mais (${lista.length - limiteVisitas})</button>` : '');
@@ -505,7 +630,7 @@ function baixarCSV(){
   const lista = visitasFiltradas(), sep = ';';
   const cab = ['Data da visita', 'Cliente', 'Cidade', 'Bairro', 'Vendedor', 'Modalidade', 'Resultado', 'Motivo', 'Preço (R$)', 'Frequência', 'Franquia (kg/mês)', 'Excedente (R$/kg)', 'Empresa concorrente', 'Data do contrato', 'Mapa', 'Fotos'];
   const q = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
-  const linhas = lista.map(c => [br(c.dVisita), c.nome, c.cidade, c.bairro, c.vendedor, c.modalidade, RES.find(r => r.k === c.res).txt, c.motivo,
+  const linhas = lista.map(c => [br(c.dVisita), c.nome, c.cidade, c.bairro, c.vendedor, c.modalidade, (RES.find(r => r.k === c.res) || { txt: c.status }).txt, c.motivo,
     c.preco ? c.preco.toFixed(2).replace('.', ',') : '', c.freq, c.franquia, c.excedente, c.concorrente, br(c.dContrato), c.mapa, c.pasta].map(q).join(sep));
   const blob = new Blob(['﻿' + [cab.map(q).join(sep), ...linhas].join('\r\n')], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `visitas_${ymd(P.ini)}_a_${ymd(P.fim)}.csv`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
@@ -514,7 +639,7 @@ function baixarCSV(){
 /* ---------- Carteira e concorrentes ---------- */
 function carteira(){
   const vs = dados.vendedores.filter(v => filtro.vend === 'todos' || v.cpf === filtro.vend)
-    .map(v => ({ v, n: dados.clientes.filter(c => c.vcpf === v.cpf && !c.res).length, and: dados.clientes.filter(c => c.vcpf === v.cpf && !c.res && c.status === 'Visita em andamento').length }))
+    .map(v => ({ v, n: clientesF.filter(c => c.vcpf === v.cpf && !c.res).length, and: clientesF.filter(c => c.vcpf === v.cpf && !c.res && c.status === 'Visita em andamento').length }))
     .filter(x => x.n).sort((a, b) => b.n - a.n);
   if (!vs.length) return $('#chCarteira').innerHTML = '<div class="empty">Nenhum cliente aguardando visita.</div>';
   const max = Math.max(...vs.map(x => x.n));
@@ -526,6 +651,56 @@ function concorrentes(){
   if (!lista.length) return $('#chConc').innerHTML = '<div class="empty">Nenhum concorrente citado no período.</div>';
   const max = lista[0][1];
   $('#chConc').innerHTML = lista.map(([n, q]) => `<div class="hbar"><div class="n" title="${esc(n)}">${esc(n)}</div><div class="tr"><div class="fl" style="width:${q / max * 100}%;background:var(--r-outraEmpresa)"></div></div><div class="val">${q}</div></div>`).join('');
+}
+
+/* ---------- Lista em cards (ao clicar nos números principais) ---------- */
+const LISTAS = {
+  visitas:   { titulo: 'Visitas realizadas', dados: () => visitasP, data: c => c.dVisita, rotData: 'Visita' },
+  contratos: { titulo: 'Contratos fechados', dados: () => contratosP, data: c => c.dContrato, rotData: 'Contrato' },
+  propostas: { titulo: 'Propostas em aberto', dados: () => visitasP.filter(c => c.res === 'proposta'), data: c => c.dVisita, rotData: 'Proposta' },
+  carteira:  { titulo: 'Carteira a visitar', dados: () => clientesF.filter(c => !c.res), data: c => c.dCadastro, rotData: 'Cadastrado' },
+};
+function cardCliente(c, L){
+  const r = RES.find(x => x.k === c.res), d = L.data(c), hoje = new Date();
+  const dias = d ? Math.floor((hoje - d) / 864e5) : null;
+  const tag = r ? `<span class="tag"><i style="background:${cor(c.res)}"></i>${r.txt}</span>` : `<span class="tag"><i style="background:var(--lime)"></i>${c.status === 'Visita em andamento' ? 'Em andamento' : 'A visitar'}</span>`;
+  const idade = c.res === 'proposta' && dias !== null ? `<span class="dias ${dias > 7 ? 'alerta' : ''}">${dias === 0 ? 'aberta hoje' : `aberta há ${dias} dia${dias === 1 ? '' : 's'}`}</span>` : '';
+  return `<div class="pc" style="border-left-color:${r ? cor(c.res) : 'var(--lime)'}">
+    <div class="top"><div><div class="nm">${esc(c.nome)}</div><div class="meta">${esc(c.cidade || '')}${c.bairro ? ' · ' + esc(c.bairro) : ''}</div></div>${tag}</div>
+    <div class="meta">👤 ${esc(c.vendedor)} · ${L.rotData} em <b style="color:var(--ink)">${br(d) || '—'}</b> ${idade}</div>
+    ${c.contato || c.telefone ? `<div class="meta">📞 ${esc(c.contato || '')}${c.contato && c.telefone ? ' · ' : ''}${esc(c.telefone || '')}</div>` : ''}
+    ${c.preco ? `<div class="vals"><div><small>Preço</small><b>${brl(c.preco)}</b></div><div><small>Frequência</small><b>${esc(c.freq || '—')}</b></div>
+      <div><small>Franquia</small><b>${c.franquia ? esc(c.franquia) + ' kg/mês' : '—'}</b></div><div><small>Excedente</small><b>${c.excedente ? brl(c.excedente) + '/kg' : '—'}</b></div></div>` : ''}
+    ${c.concorrente ? `<div class="meta">Atendido hoje por: <b style="color:var(--ink)">${esc(c.concorrente)}</b></div>` : ''}
+    <div class="lk">${c.mapa ? `<a href="${esc(c.mapa)}" target="_blank" rel="noopener">📍 Ver no mapa</a>` : ''}${c.pasta ? `<a href="${esc(c.pasta)}" target="_blank" rel="noopener">📷 Fotos</a>` : ''}${c.telefone ? `<a href="https://wa.me/55${digits(c.telefone)}" target="_blank" rel="noopener">💬 WhatsApp</a>` : ''}</div>
+  </div>`;
+}
+function abrirLista(tipo){
+  const L = LISTAS[tipo], base = L.dados();
+  const bg = document.createElement('div'); bg.className = 'drawer-bg';
+  const filtros = [P ? `${br(P.ini)} a ${br(P.fim)}` : '', filtro.vend !== 'todos' ? (dados.vendedores.find(v => v.cpf === filtro.vend) || {}).nome : 'todos os vendedores', filtro.cid !== 'todas' ? filtro.cid : ''].filter(Boolean).join(' · ');
+  bg.innerHTML = `<div class="drawer"><div class="dh"><h3>${L.titulo}<small>${esc(filtros)}${tipo === 'carteira' ? ' (carteira não depende do período)' : ''}</small></h3>
+      <input placeholder="Buscar cliente, cidade…" data-q>
+      <select data-o><option value="rec">Mais recentes</option><option value="ant">Mais antigas</option><option value="valor">Maior valor</option><option value="nome">Nome (A–Z)</option></select>
+      <button class="x" data-x aria-label="Fechar">✕</button></div>
+    <div class="dsum" data-sum></div><div class="dgrid" data-g></div></div>`;
+  document.body.appendChild(bg); document.body.style.overflow = 'hidden';
+  const fechar = () => { bg.remove(); document.body.style.overflow = ''; };
+  bg.onclick = e => { if (e.target === bg || e.target.closest('[data-x]')) fechar(); };
+  document.addEventListener('keydown', function esc_(e){ if (e.key === 'Escape') { fechar(); document.removeEventListener('keydown', esc_); } });
+  const desenhar = () => {
+    const q = bg.querySelector('[data-q]').value.trim().toLowerCase(), o = bg.querySelector('[data-o]').value;
+    let lista = base.filter(c => !q || [c.nome, c.cidade, c.bairro, c.vendedor, c.contato].some(x => String(x || '').toLowerCase().includes(q)));
+    const dt = c => (L.data(c) || 0) - 0;
+    lista.sort(o === 'ant' ? (a, b) => dt(a) - dt(b) : o === 'valor' ? (a, b) => b.preco - a.preco : o === 'nome' ? (a, b) => String(a.nome).localeCompare(String(b.nome)) : (a, b) => dt(b) - dt(a));
+    const soma = lista.reduce((s, c) => s + c.preco, 0), vend = new Set(lista.map(c => c.vcpf)).size;
+    bg.querySelector('[data-sum]').innerHTML = `<div><b>${lista.length}</b>${lista.length === 1 ? 'cliente' : 'clientes'}</div>` +
+      (soma && (tipo === 'contratos' || tipo === 'propostas') ? `<div><b>${brl(soma)}</b>${tipo === 'contratos' ? 'por mês contratados' : 'por mês em negociação'}</div>` : '') + `<div><b>${vend}</b>vendedor(es)</div>` +
+      (tipo === 'propostas' ? `<div><b>${lista.filter(c => c.dVisita && (new Date() - c.dVisita) / 864e5 > 7).length}</b>abertas há mais de 7 dias</div>` : '');
+    bg.querySelector('[data-g]').innerHTML = lista.length ? lista.map(c => cardCliente(c, L)).join('') : '<div class="empty" style="grid-column:1/-1">Nenhum cliente encontrado.</div>';
+  };
+  bg.querySelector('[data-q]').oninput = desenhar; bg.querySelector('[data-o]').onchange = desenhar;
+  desenhar();
 }
 
 let rsz; window.addEventListener('resize', () => { clearTimeout(rsz); rsz = setTimeout(() => { if (dados) graficoDias(); }, 150); });
