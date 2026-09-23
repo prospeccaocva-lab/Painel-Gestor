@@ -16,7 +16,7 @@
     --green:#289548; --green-d:#1e7a3a; --green-dd:#145a2a; --lime:#afcb09; --lime-soft:#f2f7d9;
     --bg:#f3f6f1; --surface:#fff; --ink:#18261c; --muted:#66756a; --line:#e1e8de; --grid:#edf1ea;
     --red:#d64545; --red-bg:#fdeaea; --orange:#ef8a00; --orange-bg:#fff1dc; --ok:#289548; --ok-bg:#e3f4e8;
-    --blue:#2a6fdb; --blue-bg:#e8f0fd; --violet:#7a5ccf; --violet-bg:#efeafb;
+    --blue:#2a6fdb; --blue-bg:#e8f0fd; --violet:#7a5ccf; --violet-bg:#efeafb; --yellow:#e0b400; --yellow-bg:#fdf6d3;
     /* cores dos resultados (validadas para daltonismo na ordem abaixo) */
     --r-contrato:#289548; --r-proposta:#2a6fdb; --r-outraEmpresa:#ef8a00; --r-fechado:#7a5ccf; --r-naoExiste:#d64545;
     --radius:18px; --shadow:0 1px 2px rgba(20,50,30,.06),0 6px 18px rgba(20,50,30,.07);
@@ -61,6 +61,7 @@
   .clock{display:flex;flex-direction:column;align-items:center}
   .clock svg{width:100%;max-width:340px}
   .clock .ct{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin-top:6px;font-size:14px;color:var(--muted);text-align:center}
+  .clock .ct div{font-size:12px;letter-spacing:.04em;font-weight:600}
   .clock .ct b{display:block;font-size:24px;color:var(--ink)}
   .tbtn:hover{background:rgba(255,255,255,.22)}
   main{max-width:1320px;margin:-50px auto 0;padding:0 24px 48px;position:relative}
@@ -105,6 +106,12 @@
   .pc .lk{display:flex;gap:12px;font-size:13px;font-weight:600;flex-wrap:wrap;margin-top:auto;padding-top:4px}
   .pc .dias{font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px;background:#eef1ec;color:var(--muted);white-space:nowrap}
   .pc .dias.alerta{background:var(--orange-bg);color:#a85f00}
+  .pc .dias.critico{background:var(--red);color:#fff}
+  .pc.parada{background:#fff7f7;box-shadow:0 0 0 1.5px #f3c4c4,var(--shadow)}
+  .alerta-card{margin-bottom:16px;border-left:6px solid var(--red)}
+  .alerta-card.ok{border-left-color:var(--ok)}
+  .alerta-card h2 .cnt{background:var(--red);color:#fff;border-radius:999px;padding:2px 10px;font-size:14px;margin-left:6px}
+  .alerta-card .dgrid{padding:4px 0 0}
   .kpi .d b.up{color:var(--ok)} .kpi .d b.down{color:var(--red)}
 
   /* ---------- Cartões ---------- */
@@ -125,7 +132,7 @@
   .hbar .val{font-size:14px;font-weight:700;text-align:right;white-space:nowrap}
   .hbar .val small{font-weight:500;color:var(--muted)}
   .chip{display:inline-block;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
-  .s-red{background:var(--red-bg);color:#b53030} .s-orange{background:var(--orange-bg);color:#a85f00} .s-lime{background:var(--lime-soft);color:#6f8200} .s-green{background:var(--ok-bg);color:var(--green-d)} .s-none{background:#eef1ec;color:var(--muted)}
+  .s-red{background:var(--red-bg);color:#b53030} .s-orange{background:var(--orange-bg);color:#a85f00} .s-lime{background:var(--lime-soft);color:#6f8200} .s-yellow{background:var(--yellow-bg);color:#8a6d00} .s-green{background:var(--ok-bg);color:var(--green-d)} .s-none{background:#eef1ec;color:var(--muted)}
 
   /* gráfico de colunas */
   .chart{position:relative;width:100%}
@@ -159,7 +166,7 @@
   .modal{background:var(--surface);border-radius:20px;padding:22px;width:100%;max-width:520px;max-height:90vh;overflow:auto}
   .modal h3{margin:0 0 4px;font-size:20px} .modal p{margin:0 0 16px;color:var(--muted);font-size:14px}
   .mrow{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--grid)}
-  .mrow span{flex:1} .mrow input{width:110px;padding:9px 10px;border-radius:10px;border:1.5px solid var(--line);font-size:15px;text-align:right}
+  .mrow span{flex:1} .mrow.mtot{border-top:2px solid var(--line);border-bottom:0;margin-top:6px;padding-top:12px} .mrow input{width:110px;padding:9px 10px;border-radius:10px;border:1.5px solid var(--line);font-size:15px;text-align:right}
   .mact{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
   .btn{padding:11px 18px;border-radius:10px;font-weight:700}
   .btn-green{background:var(--green);color:#fff} .btn-soft{background:#eef3eb;color:var(--green-d)}
@@ -212,6 +219,8 @@
     <div class="kpis" id="kpis"></div>
 
     <div class="sits" id="sits"></div>
+
+    <div class="card alerta-card" id="cardParadas"></div>
 
     <div class="grid g32">
       <div class="card"><h2>Visitômetro</h2><p class="sub">Agenda do período: clientes que estavam para visitar × visitas finalizadas</p><div class="gauges" id="chVisitometro"></div></div>
@@ -387,7 +396,7 @@ function render(){
   visitasP = cs.filter(c => c.res && dentro(c.dVisita, P.ini, P.fim));
   contratosP = cs.filter(c => c.res === 'contrato' && dentro(c.dContrato, P.ini, P.fim));
   $('#selSit').value = filtro.sit;
-  kpis(cs); situacoes(cs); visitometro(cs); relogio(); graficoDias(); resultados(); metas(); mapa(); tabelaVendedores(); limiteVisitas = 30; tabelaVisitas(); carteira(); concorrentes();
+  kpis(cs); cardParadas(); situacoes(cs); visitometro(cs); relogio(); graficoDias(); resultados(); metas(); mapa(); tabelaVendedores(); limiteVisitas = 30; tabelaVisitas(); carteira(); concorrentes();
 }
 
 function delta(atual, ant, fmt = v => v){
@@ -411,7 +420,8 @@ function kpis(cs){
     t('Contratos fechados', contratosP.length, delta(contratosP.length, conAnt.length), 'contratos') +
     t('Valor mensal contratado', brlK(valor), delta(valor, valorAnt, brlK)) +
     t('Taxa de conversão', conv + '%', `${convN} contrato(s) em ${visitasP.length} visita(s)`) +
-    t('Propostas em aberto', props.length, props.length ? brlK(valorProps) + ' por mês em negociação' : 'nenhuma no período', 'propostas') +
+    t('Propostas em aberto', props.length, (props.length ? brlK(valorProps) + ' por mês em negociação' : 'nenhuma no período') +
+      (props.filter(c => diasAberta(c) > DIAS_PARADA).length ? `<br><b class="down">${props.filter(c => diasAberta(c) > DIAS_PARADA).length} há mais de ${DIAS_PARADA} dias</b>` : ''), 'propostas') +
     t('Carteira a visitar', aVisitar, 'clientes aguardando visita', 'carteira');
 }
 
@@ -463,11 +473,14 @@ function visitometro(cs){
 }
 
 /* ---------- Relógio de conversão ---------- */
+// Faixas do relógio: até 20% vermelho · 20–40% laranja · 40–60% amarelo · acima de 60% verde
+const FAIXA_CONV = p => p > 60 ? { cor: 'var(--ok)', cls: 's-green' } : p > 40 ? { cor: 'var(--yellow)', cls: 's-yellow' } : p > 20 ? { cor: 'var(--orange)', cls: 's-orange' } : { cor: 'var(--red)', cls: 's-red' };
 function relogio(){
-  const vis = visitasP.length, fech = visitasP.filter(c => c.res === 'contrato').length, pct = vis ? Math.round(fech / vis * 100) : 0;
-  $('#chConversao').innerHTML = `<div class="clock">${medidor(vis ? fech / vis : 0, 'var(--green)', '', 'Conversão ' + pct + '%', { agulha: true, larg: 320 })}
-    <div style="font-size:40px;font-weight:800;margin-top:-6px">${pct}%</div>
-    <div class="ct"><div><b>${vis}</b>clientes visitados</div><div><b>${fech}</b>com contrato fechado</div><div><b>${visitasP.filter(c => c.res === 'proposta').length}</b>propostas em aberto</div></div></div>`;
+  const vis = visitasP.length, fech = visitasP.filter(c => c.res === 'contrato').length, real = vis ? fech / vis * 100 : 0, pct = Math.round(real), f = FAIXA_CONV(real);
+  $('#chConversao').innerHTML = `<div class="clock">${medidor(vis ? fech / vis : 0, vis ? f.cor : '#c9d2c6', '', 'Conversão ' + pct + '%', { agulha: true, larg: 320 })}
+    <div style="font-size:40px;font-weight:800;margin-top:-6px">${pct}% ${vis ? `<span class="chip ${f.cls}" style="font-size:13px;vertical-align:middle">${real > 60 ? 'ótima' : real > 40 ? 'boa' : real > 20 ? 'atenção' : 'baixa'}</span>` : ''}</div>
+    <div class="ct"><div><b>${vis}</b>CLIENTES VISITADOS</div><div><b>${fech}</b>CONTRATOS FECHADOS</div><div><b>${visitasP.filter(c => c.res === 'proposta').length}</b>PROPOSTAS EM ABERTO</div></div>
+    <div class="legend" style="justify-content:center"><span><span class="chip s-red">até 20%</span></span><span><span class="chip s-orange">20–40%</span></span><span><span class="chip s-yellow">40–60%</span></span><span><span class="chip s-green">acima de 60%</span></span></div></div>`;
 }
 
 /* ---------- Visitas por dia (colunas empilhadas) ---------- */
@@ -550,16 +563,23 @@ function abrirMetas(){
   const mes = mesAtual(), [y, m] = mes.split('-').map(Number);
   const ms = dados.metas.filter(x => x.mes === mes), ger = ms.find(x => !x.cpf);
   const bg = document.createElement('div'); bg.className = 'modal-bg';
+  // Meta da equipe = soma das metas individuais (não é digitada)
   bg.innerHTML = `<div class="modal"><h3>Metas de ${MESES[m - 1]} de ${y}</h3>
-    <p>Número de contratos fechados no mês. A meta individual vale mais que a meta geral. Deixe em branco para não definir.</p>
-    <div class="mrow"><span><b>Meta geral</b> (todos os vendedores)</span><input type="number" min="0" data-cpf="" value="${ger && ger.meta ? ger.meta : ''}"></div>
+    <p>Defina quantos contratos cada vendedor deve fechar no mês. A meta da equipe é a soma das metas individuais e se atualiza sozinha.</p>
     ${dados.vendedores.map(v => { const ind = ms.find(x => x.cpf && x.cpf.padStart(11, '0') === v.cpf);
-      return `<div class="mrow"><span>${esc(v.nome)}</span><input type="number" min="0" data-cpf="${v.cpf}" data-nome="${esc(v.nome)}" value="${ind && ind.meta ? ind.meta : ''}"></div>`; }).join('')}
+      const atual = ind && ind.meta ? ind.meta : (ger && ger.meta ? ger.meta : '');
+      return `<div class="mrow"><span>${esc(v.nome)}</span><input type="number" min="0" step="1" inputmode="numeric" data-cpf="${v.cpf}" data-nome="${esc(v.nome)}" value="${atual}"></div>`; }).join('')}
+    <div class="mrow mtot"><span><b>Meta da equipe</b><br><small style="color:var(--muted)">soma automática</small></span><b data-tot style="font-size:22px;min-width:110px;text-align:right">0</b></div>
+    ${ger && ger.meta ? `<p style="margin:12px 0 0;font-size:13px">A meta geral antiga (${ger.meta} por vendedor) foi usada para preencher quem não tinha meta própria. Ao salvar, ela deixa de existir.</p>` : ''}
     <div class="mact"><button class="btn btn-soft" data-x>Cancelar</button><button class="btn btn-green" data-s>Salvar metas</button></div></div>`;
   document.body.appendChild(bg);
+  const inputs = [...bg.querySelectorAll('input[data-cpf]')];
+  const somar = () => { bg.querySelector('[data-tot]').textContent = inputs.reduce((s, i) => s + (Math.max(0, Math.round(+i.value)) || 0), 0); };
+  inputs.forEach(i => i.oninput = somar); somar();
   bg.onclick = e => { if (e.target === bg || e.target.closest('[data-x]')) bg.remove(); };
   bg.querySelector('[data-s]').onclick = async () => {
-    const lista = [...bg.querySelectorAll('input')].map(i => ({ mes, cpf: i.dataset.cpf, nome: i.dataset.nome || 'Todos', meta: i.value === '' ? '' : Math.max(0, Math.round(+i.value)) }));
+    const lista = inputs.map(i => ({ mes, cpf: i.dataset.cpf, nome: i.dataset.nome, meta: i.value === '' ? '' : Math.max(0, Math.round(+i.value)) }));
+    lista.push({ mes, cpf: '', nome: 'Todos', meta: '' }); // apaga a meta geral antiga, se houver
     bg.querySelector('[data-s]').textContent = 'Salvando…';
     try { await api('painelSalvarMetas', { dados: { metas: lista } }); bg.remove(); toast('Metas salvas! Os vendedores veem ao abrir o app.'); carregar(); }
     catch (e) { toast('Erro ao salvar: ' + e.message); bg.querySelector('[data-s]').textContent = 'Salvar metas'; }
@@ -654,7 +674,21 @@ function concorrentes(){
 }
 
 /* ---------- Lista em cards (ao clicar nos números principais) ---------- */
+const DIAS_PARADA = 15; // proposta aberta há mais de X dias = vermelho (cobrar)
+const diasAberta = c => c.dVisita ? Math.floor((new Date() - c.dVisita) / 864e5) : 0;
+// Todas as propostas ainda abertas (independe do período), respeitando vendedor e cidade
+const propostasParadas = () => clientesF.filter(c => c.res === 'proposta' && diasAberta(c) > DIAS_PARADA).sort((a, b) => diasAberta(b) - diasAberta(a));
+function cardParadas(){
+  const l = propostasParadas(), el = $('#cardParadas');
+  if (!l.length) { el.className = 'card alerta-card ok'; el.innerHTML = `<h2>✓ Nenhuma proposta parada há mais de ${DIAS_PARADA} dias</h2><p class="sub" style="margin:0">Todas as propostas em aberto têm retorno recente.</p>`; return; }
+  el.className = 'card alerta-card';
+  const soma = l.reduce((s, c) => s + c.preco, 0);
+  el.innerHTML = `<h2><span>⚠ Propostas paradas há mais de ${DIAS_PARADA} dias <span class="cnt">${l.length}</span></span>${l.length > 3 ? `<button class="lnk" onclick="abrirLista('paradas')">Ver todas →</button>` : ''}</h2>
+    <p class="sub">${brl(soma)} por mês parados em negociação. Cobre o vendedor ou fale com o cliente.</p>
+    <div class="dgrid">${l.slice(0, 3).map(c => cardCliente(c, LISTAS.paradas)).join('')}</div>`;
+}
 const LISTAS = {
+  paradas:   { titulo: `Propostas paradas há mais de ${DIAS_PARADA} dias`, dados: propostasParadas, data: c => c.dVisita, rotData: 'Proposta', semPeriodo: true },
   visitas:   { titulo: 'Visitas realizadas', dados: () => visitasP, data: c => c.dVisita, rotData: 'Visita' },
   contratos: { titulo: 'Contratos fechados', dados: () => contratosP, data: c => c.dContrato, rotData: 'Contrato' },
   propostas: { titulo: 'Propostas em aberto', dados: () => visitasP.filter(c => c.res === 'proposta'), data: c => c.dVisita, rotData: 'Proposta' },
@@ -664,8 +698,9 @@ function cardCliente(c, L){
   const r = RES.find(x => x.k === c.res), d = L.data(c), hoje = new Date();
   const dias = d ? Math.floor((hoje - d) / 864e5) : null;
   const tag = r ? `<span class="tag"><i style="background:${cor(c.res)}"></i>${r.txt}</span>` : `<span class="tag"><i style="background:var(--lime)"></i>${c.status === 'Visita em andamento' ? 'Em andamento' : 'A visitar'}</span>`;
-  const idade = c.res === 'proposta' && dias !== null ? `<span class="dias ${dias > 7 ? 'alerta' : ''}">${dias === 0 ? 'aberta hoje' : `aberta há ${dias} dia${dias === 1 ? '' : 's'}`}</span>` : '';
-  return `<div class="pc" style="border-left-color:${r ? cor(c.res) : 'var(--lime)'}">
+  const idade = c.res === 'proposta' && dias !== null ? `<span class="dias ${dias > DIAS_PARADA ? 'critico' : dias > 7 ? 'alerta' : ''}">${dias === 0 ? 'aberta hoje' : `aberta há ${dias} dia${dias === 1 ? '' : 's'}`}</span>` : '';
+  const parada = c.res === 'proposta' && dias > DIAS_PARADA;
+  return `<div class="pc ${parada ? 'parada' : ''}" style="border-left-color:${parada ? 'var(--red)' : r ? cor(c.res) : 'var(--lime)'}">
     <div class="top"><div><div class="nm">${esc(c.nome)}</div><div class="meta">${esc(c.cidade || '')}${c.bairro ? ' · ' + esc(c.bairro) : ''}</div></div>${tag}</div>
     <div class="meta">👤 ${esc(c.vendedor)} · ${L.rotData} em <b style="color:var(--ink)">${br(d) || '—'}</b> ${idade}</div>
     ${c.contato || c.telefone ? `<div class="meta">📞 ${esc(c.contato || '')}${c.contato && c.telefone ? ' · ' : ''}${esc(c.telefone || '')}</div>` : ''}
@@ -677,10 +712,14 @@ function cardCliente(c, L){
 }
 function abrirLista(tipo){
   const L = LISTAS[tipo], base = L.dados();
+  const cidades = [...new Set(base.map(c => c.cidade).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const vends = [...new Map(base.map(c => [c.vcpf, c.vendedor])).entries()].sort((a, b) => String(a[1]).localeCompare(String(b[1])));
   const bg = document.createElement('div'); bg.className = 'drawer-bg';
-  const filtros = [P ? `${br(P.ini)} a ${br(P.fim)}` : '', filtro.vend !== 'todos' ? (dados.vendedores.find(v => v.cpf === filtro.vend) || {}).nome : 'todos os vendedores', filtro.cid !== 'todas' ? filtro.cid : ''].filter(Boolean).join(' · ');
+  const filtros = [P && !L.semPeriodo ? `${br(P.ini)} a ${br(P.fim)}` : '', filtro.vend !== 'todos' ? (dados.vendedores.find(v => v.cpf === filtro.vend) || {}).nome : 'todos os vendedores', filtro.cid !== 'todas' ? filtro.cid : ''].filter(Boolean).join(' · ');
   bg.innerHTML = `<div class="drawer"><div class="dh"><h3>${L.titulo}<small>${esc(filtros)}${tipo === 'carteira' ? ' (carteira não depende do período)' : ''}</small></h3>
-      <input placeholder="Buscar cliente, cidade…" data-q>
+      <input placeholder="Buscar cliente…" data-q>
+      ${filtro.cid === 'todas' && cidades.length > 1 ? `<select data-c><option value="">Todas as cidades</option>${cidades.map(c => `<option>${esc(c)}</option>`).join('')}</select>` : ''}
+      ${filtro.vend === 'todos' && vends.length > 1 ? `<select data-v><option value="">Todos os vendedores</option>${vends.map(([cpf, n]) => `<option value="${cpf}">${esc(n)}</option>`).join('')}</select>` : ''}
       <select data-o><option value="rec">Mais recentes</option><option value="ant">Mais antigas</option><option value="valor">Maior valor</option><option value="nome">Nome (A–Z)</option></select>
       <button class="x" data-x aria-label="Fechar">✕</button></div>
     <div class="dsum" data-sum></div><div class="dgrid" data-g></div></div>`;
@@ -690,16 +729,19 @@ function abrirLista(tipo){
   document.addEventListener('keydown', function esc_(e){ if (e.key === 'Escape') { fechar(); document.removeEventListener('keydown', esc_); } });
   const desenhar = () => {
     const q = bg.querySelector('[data-q]').value.trim().toLowerCase(), o = bg.querySelector('[data-o]').value;
-    let lista = base.filter(c => !q || [c.nome, c.cidade, c.bairro, c.vendedor, c.contato].some(x => String(x || '').toLowerCase().includes(q)));
+    const fc = bg.querySelector('[data-c]')?.value || '', fv = bg.querySelector('[data-v]')?.value || '';
+    let lista = base.filter(c => (!fc || c.cidade === fc) && (!fv || c.vcpf === fv))
+      .filter(c => !q || [c.nome, c.cidade, c.bairro, c.vendedor, c.contato].some(x => String(x || '').toLowerCase().includes(q)));
     const dt = c => (L.data(c) || 0) - 0;
     lista.sort(o === 'ant' ? (a, b) => dt(a) - dt(b) : o === 'valor' ? (a, b) => b.preco - a.preco : o === 'nome' ? (a, b) => String(a.nome).localeCompare(String(b.nome)) : (a, b) => dt(b) - dt(a));
     const soma = lista.reduce((s, c) => s + c.preco, 0), vend = new Set(lista.map(c => c.vcpf)).size;
     bg.querySelector('[data-sum]').innerHTML = `<div><b>${lista.length}</b>${lista.length === 1 ? 'cliente' : 'clientes'}</div>` +
-      (soma && (tipo === 'contratos' || tipo === 'propostas') ? `<div><b>${brl(soma)}</b>${tipo === 'contratos' ? 'por mês contratados' : 'por mês em negociação'}</div>` : '') + `<div><b>${vend}</b>vendedor(es)</div>` +
-      (tipo === 'propostas' ? `<div><b>${lista.filter(c => c.dVisita && (new Date() - c.dVisita) / 864e5 > 7).length}</b>abertas há mais de 7 dias</div>` : '');
+      (soma && (tipo === 'contratos' || tipo === 'propostas' || tipo === 'paradas') ? `<div><b>${brl(soma)}</b>${tipo === 'contratos' ? 'por mês contratados' : 'por mês em negociação'}</div>` : '') + `<div><b>${vend}</b>vendedor(es)</div>` +
+      (tipo === 'propostas' || tipo === 'paradas' ? `<div style="color:var(--red)"><b style="color:var(--red)">${lista.filter(c => diasAberta(c) > DIAS_PARADA).length}</b>abertas há mais de ${DIAS_PARADA} dias</div>` : '');
     bg.querySelector('[data-g]').innerHTML = lista.length ? lista.map(c => cardCliente(c, L)).join('') : '<div class="empty" style="grid-column:1/-1">Nenhum cliente encontrado.</div>';
   };
   bg.querySelector('[data-q]').oninput = desenhar; bg.querySelector('[data-o]').onchange = desenhar;
+  bg.querySelectorAll('[data-c],[data-v]').forEach(x => x.onchange = desenhar);
   desenhar();
 }
 
