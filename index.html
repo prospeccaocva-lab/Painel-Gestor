@@ -113,6 +113,55 @@
   .alerta-card.ok{border-left-color:var(--ok)}
   .alerta-card h2 .cnt{background:var(--red);color:#fff;border-radius:999px;padding:2px 10px;font-size:14px;margin-left:6px}
   .alerta-card .dgrid{padding:4px 0 0}
+  .rodape{text-align:center;color:var(--muted);font-size:13px;padding:8px 16px 28px}
+  .tbl tr.clk{cursor:pointer}
+  .fora{display:inline-block;font-size:11.5px;font-weight:700;color:#8a4b00;background:var(--orange-bg);padding:2px 8px;border-radius:999px;white-space:nowrap}
+  /* card da lista (limpo e clicável) */
+  .pc2{all:unset;box-sizing:border-box;cursor:pointer;background:var(--surface);border-radius:16px;box-shadow:var(--shadow);padding:16px 16px 14px;display:flex;flex-direction:column;gap:6px;border-top:4px solid var(--st);transition:transform .12s,box-shadow .12s;font-family:inherit;color:var(--ink)}
+  .pc2:hover{transform:translateY(-2px);box-shadow:0 2px 4px rgba(20,50,30,.08),0 12px 28px rgba(20,50,30,.12)}
+  .pc2:focus-visible{outline:3px solid var(--lime)}
+  .pc2.parada{background:#fff8f8}
+  .pc2-h{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+  .pc2-h .dot{width:9px;height:9px;border-radius:50%;background:var(--st)}
+  .pc2-h .st{flex:1}
+  .age{font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:#eef1ec;color:var(--muted);text-transform:none;letter-spacing:0;white-space:nowrap}
+  .age.alerta{background:var(--orange-bg);color:#a85f00} .age.critico{background:var(--red);color:#fff}
+  .pc2-n{font-size:17px;font-weight:700;line-height:1.25}
+  .pc2-s{font-size:13px;color:var(--muted)}
+  .pc2-v{font-size:20px;font-weight:800;margin-top:4px} .pc2-v small{font-size:13px;font-weight:500;color:var(--muted)}
+  .pc2-v0{font-size:14px;font-weight:600;color:var(--muted)}
+  .pc2-f{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);border-top:1px solid var(--grid);padding-top:9px;margin-top:4px}
+  .pc2-f .abrir{margin-left:auto;font-weight:700;color:var(--green-d)}
+  /* modais maiores */
+  .modal-lg{max-width:760px}
+  .pscope{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0 14px;background:#f5f8f3;padding:10px 12px;border-radius:12px}
+  .pscope label{font-weight:700;font-size:14px} .pscope select,.pscope input{padding:9px 10px;border-radius:10px;border:1.5px solid var(--line);font-size:14px;background:#fff;min-width:220px}
+  .ptab{width:100%;border-collapse:collapse;font-size:14px} .ptab th{text-align:left;font-size:12px;color:var(--muted);text-transform:uppercase;padding:6px}
+  .ptab td{padding:6px;border-top:1px solid var(--grid)}
+  .pin{display:flex;align-items:center;gap:4px;border:1.5px solid var(--line);border-radius:10px;padding:0 8px;background:#fff}
+  .pin input{border:0;outline:0;width:100%;min-width:60px;padding:8px 2px;font-size:14px;text-align:right;background:transparent}
+  .pin em{font-style:normal;color:var(--muted);font-size:12.5px;white-space:nowrap}
+  .pcids{margin-top:14px;font-size:13px;color:var(--muted);display:flex;gap:6px;flex-wrap:wrap;align-items:center} .pcids button.chip{cursor:pointer;border:0}
+  .mact{align-items:center}
+  /* resumo do cliente */
+  main.det{max-width:1000px;margin:-50px auto 0;padding:0 24px 30px;position:relative}
+  .dhero{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;border-top:6px solid var(--st);margin-bottom:16px}
+  .dhero h2{margin:10px 0 4px;font-size:28px} .dhero p{margin:0;color:var(--muted)}
+  .dst{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:14px;margin-right:8px} .dst i{width:11px;height:11px;border-radius:50%;background:var(--st)}
+  .dacts{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .dbtn{display:inline-flex;align-items:center;gap:6px;padding:10px 14px;border-radius:10px;background:#eef3eb;color:var(--green-d);font-weight:700;text-decoration:none;font-size:14px}
+  .dbtn.wa{background:#25d366;color:#fff}
+  .dalerta{background:var(--orange-bg);border-left:6px solid var(--orange);border-radius:14px;padding:14px 18px;margin-bottom:16px;color:#6b3c00} .dalerta ul{margin:6px 0 0;padding-left:20px}
+  .dok{background:var(--ok-bg);color:var(--green-d);border-radius:14px;padding:12px 18px;margin-bottom:16px;font-weight:600}
+  .dgrid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .dcard{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+  .dcard h3{margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  .dprop .big{font-size:34px;font-weight:800;margin-bottom:12px} .dprop .big small{font-size:15px;color:var(--muted);font-weight:500}
+  .kv4{display:grid;grid-template-columns:1fr 1fr;gap:8px} .kv4 div{background:#f5f8f3;border-radius:12px;padding:10px 12px} .kv4 small{display:block;font-size:11.5px;color:var(--muted);text-transform:uppercase;font-weight:600} .kv4 b{font-size:16px}
+  .dl{display:flex;justify-content:space-between;gap:16px;padding:9px 0;border-bottom:1px solid var(--grid);font-size:14.5px} .dl:last-child{border-bottom:0} .dl span{color:var(--muted)} .dl b{text-align:right}
+  .dobs{margin-top:10px;background:#f5f8f3;border-radius:12px;padding:10px 12px;white-space:pre-wrap;font-size:14px} .dobs small{display:block;color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;margin-bottom:4px}
+  @media (max-width:760px){ .dgrid2{grid-template-columns:1fr} main.det{padding:0 16px 24px} .dhero h2{font-size:22px} }
+  @media print{ header.top,.dacts,.rodape{display:none} main.det{margin:0} body{background:#fff} .dcard,.dhero{box-shadow:none;border:1px solid #ddd} }
   .kpi .d b.up{color:var(--ok)} .kpi .d b.down{color:var(--red)}
 
   /* ---------- Cartões ---------- */
@@ -200,6 +249,7 @@
     <span class="upd" id="upd"></span>
     <button class="tbtn" onclick="carregar()">⟳ Atualizar</button>
     <button class="tbtn tbtn-lime" onclick="abrirMetas()">🎯 Definir metas</button>
+    <button class="tbtn" onclick="abrirParametros()">⚙ Parâmetros</button>
     <button class="tbtn" onclick="sair()">Sair</button>
   </div></header>
 
@@ -251,7 +301,11 @@
         <div class="sits" id="sits"></div><div class="tscroll" id="tbVisitas"></div></div>
     </div>
   </main>
+  <footer class="rodape">Painel da Gerência · Cheiro Verde Ambiental · <b>Versão <span class="ver-num"></span></b></footer>
 </section>
+
+<!-- Resumo de um cliente (abre em nova guia) -->
+<section id="detalhe" class="hidden"></section>
 
 <div id="tip"></div>
 <div class="toast" id="toast"></div>
@@ -263,6 +317,7 @@
    ========================================================= */
 const API = 'https://script.google.com/macros/s/AKfycbyKfrfeTPq8MrBbIGsZp54_6l8yPKWDV6omrG7GCBlrfpzkTktzhdd8gUBlSdFivvGU/exec';
 const ATUALIZAR_A_CADA_MIN = 5;
+const VERSAO = '7';
 
 /* ---------- utilidades ---------- */
 const $ = s => document.querySelector(s);
@@ -298,10 +353,94 @@ async function api(acao, extra = {}){
   return j;
 }
 
+const numOuVazio = v => v === '' || v === null || v === undefined || isNaN(Number(v)) ? '' : Number(v);
+
+/* =========================================================
+   PARÂMETROS COMERCIAIS (mínimos por frequência, padrão ou por cidade)
+   ========================================================= */
+const FREQS = ['1x ao mês', '2x ao mês', 'Semanal', 'Outros'];
+const semAcento = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+const freqDe = c => FREQS.slice(0, 3).includes(c.freq) ? c.freq : 'Outros';
+function regraPara(cidade, freq, lista = dados.parametros){
+  const pad = lista.find(r => !r.cidade && r.freq === freq) || {}, cid = lista.find(r => r.cidade && semAcento(r.cidade) === semAcento(cidade) && r.freq === freq) || {};
+  const campo = k => cid[k] !== undefined && cid[k] !== '' ? cid[k] : (pad[k] !== undefined ? pad[k] : '');
+  const r = { valor: campo('valor'), franquia: campo('franquia'), excedente: campo('excedente'), cidade: Object.keys(cid).length ? cid.cidade : '' };
+  return r.valor === '' && r.franquia === '' && r.excedente === '' ? null : r;
+}
+// Retorna null (sem proposta ou sem regra) ou { ok, falhas: [texto], regra }
+function avaliar(c, lista){
+  if (!c.preco || !dados) return null;
+  const r = regraPara(c.cidade, freqDe(c), lista || dados.parametros); if (!r) return null;
+  const falhas = [];
+  if (r.valor !== '' && c.preco < r.valor) falhas.push(`Valor ${brl(c.preco)} abaixo do mínimo de ${brl(r.valor)}`);
+  if (r.franquia !== '' && Number(c.franquia || 0) < r.franquia) falhas.push(`Franquia ${Number(c.franquia || 0)} kg abaixo do mínimo de ${r.franquia} kg`);
+  if (r.excedente !== '' && Number(c.excedente || 0) < r.excedente) falhas.push(`Excedente ${brl(c.excedente || 0)}/kg abaixo do mínimo de ${brl(r.excedente)}/kg`);
+  return { ok: !falhas.length, falhas, regra: r };
+}
+const foraParam = c => { const a = avaliar(c); return !!(a && !a.ok); };
+
+function abrirParametros(){
+  let trabalho = dados.parametros.map(r => ({ ...r }));
+  const cidadesDados = [...new Set(dados.clientes.map(c => String(c.cidade || '').trim()).filter(Boolean))];
+  const bg = document.createElement('div'); bg.className = 'modal-bg';
+  bg.innerHTML = `<div class="modal modal-lg"><h3>⚙ Parâmetros comerciais</h3>
+    <p>Valores mínimos por frequência de coleta. As propostas abaixo destes valores aparecem sinalizadas no painel. Use uma cidade específica para campanhas: os campos vazios da cidade seguem o padrão.</p>
+    <div class="pscope"><label>Aplicar em</label><select data-scope></select><input data-nova placeholder="Nome da cidade" class="hidden"></div>
+    <div data-tab></div>
+    <div data-cids class="pcids"></div>
+    <div class="mact"><button class="btn btn-soft" data-x>Cancelar</button><button class="btn btn-green" data-s>Salvar parâmetros</button></div></div>`;
+  document.body.appendChild(bg);
+  let escopo = '';
+  const sel = bg.querySelector('[data-scope]'), nova = bg.querySelector('[data-nova]');
+  const montarEscopos = () => {
+    const comRegra = [...new Set(trabalho.filter(r => r.cidade).map(r => r.cidade))];
+    const todas = [...new Set([...comRegra, ...cidadesDados])].sort((a, b) => a.localeCompare(b));
+    sel.innerHTML = `<option value="">Todas as cidades (padrão)</option>` + todas.map(c => `<option value="${esc(c)}">${esc(c)}${comRegra.includes(c) ? ' ★ campanha' : ''}</option>`).join('') + `<option value="__nova">+ Outra cidade…</option>`;
+    sel.value = escopo;
+    bg.querySelector('[data-cids]').innerHTML = comRegra.length ? `<b>Cidades com parâmetro próprio:</b> ${comRegra.map(c => `<button class="chip s-lime" data-ir="${esc(c)}">${esc(c)}</button>`).join(' ')}` : '<span>Nenhuma cidade com parâmetro próprio.</span>';
+    bg.querySelectorAll('[data-ir]').forEach(b => b.onclick = () => { guardar(); escopo = b.dataset.ir; montarEscopos(); tabela(); });
+  };
+  const tabela = () => {
+    const pad = f => trabalho.find(r => !r.cidade && r.freq === f) || {};
+    const lin = f => trabalho.find(r => semAcento(r.cidade) === semAcento(escopo) && r.freq === f) || {};
+    const campo = (f, k, pre, suf) => { const v = lin(f)[k], ph = escopo && pad(f)[k] !== undefined && pad(f)[k] !== '' ? `padrão ${pad(f)[k]}` : '—';
+      return `<td><div class="pin">${pre ? `<em>${pre}</em>` : ''}<input type="number" min="0" step="0.01" data-f="${f}" data-k="${k}" value="${v === undefined ? '' : v}" placeholder="${ph}">${suf ? `<em>${suf}</em>` : ''}</div></td>`; };
+    bg.querySelector('[data-tab]').innerHTML = `<table class="ptab"><thead><tr><th>Frequência</th><th>Valor mínimo</th><th>Franquia mínima</th><th>Excedente mínimo</th></tr></thead><tbody>
+      ${FREQS.map(f => `<tr><td><b>${f}</b></td>${campo(f, 'valor', 'R$', '/mês')}${campo(f, 'franquia', '', 'kg')}${campo(f, 'excedente', 'R$', '/kg')}</tr>`).join('')}</tbody></table>
+      ${escopo ? `<button class="lnk" style="margin-top:10px;background:var(--red-bg);color:#b53030" data-rm>Remover parâmetros de ${esc(escopo)}</button>` : ''}`;
+    const rm = bg.querySelector('[data-rm]');
+    if (rm) rm.onclick = () => { trabalho = trabalho.filter(r => semAcento(r.cidade) !== semAcento(escopo)); escopo = ''; montarEscopos(); tabela(); };
+  };
+  const guardar = () => {
+    bg.querySelectorAll('[data-tab] input').forEach(i => {
+      const f = i.dataset.f, k = i.dataset.k, v = i.value === '' ? '' : Math.max(0, +i.value);
+      let r = trabalho.find(x => semAcento(x.cidade) === semAcento(escopo) && x.freq === f);
+      if (!r) { if (v === '') return; r = { cidade: escopo, freq: f, valor: '', franquia: '', excedente: '' }; trabalho.push(r); }
+      r[k] = v;
+    });
+    trabalho = trabalho.filter(r => r.valor !== '' || r.franquia !== '' || r.excedente !== '');
+  };
+  sel.onchange = () => {
+    guardar();
+    if (sel.value === '__nova') { nova.classList.remove('hidden'); nova.focus(); sel.value = escopo; return; }
+    nova.classList.add('hidden'); escopo = sel.value; montarEscopos(); tabela();
+  };
+  nova.onkeydown = e => { if (e.key === 'Enter' && nova.value.trim()) { guardar(); escopo = nova.value.trim(); nova.value = ''; nova.classList.add('hidden');
+    if (!cidadesDados.includes(escopo)) cidadesDados.push(escopo); montarEscopos(); tabela(); } };
+  nova.onblur = () => nova.onkeydown({ key: 'Enter' });
+  montarEscopos(); tabela();
+  bg.onclick = e => { if (e.target === bg || e.target.closest('[data-x]')) bg.remove(); };
+  bg.querySelector('[data-s]').onclick = async () => {
+    guardar(); const b = bg.querySelector('[data-s]'); b.textContent = 'Salvando…';
+    try { await api('painelSalvarParametros', { dados: { parametros: trabalho } }); bg.remove(); toast('Parâmetros salvos!'); carregar(); }
+    catch (e) { toast('Erro ao salvar: ' + e.message); b.textContent = 'Salvar parâmetros'; }
+  };
+}
+
 /* ---------- login ---------- */
 $('#loginForm').addEventListener('submit', async e => {
   e.preventDefault(); senha = $('#senha').value; $('#lerr').textContent = ''; $('#entrarBtn').textContent = 'Entrando…';
-  try { await api('painelLogin'); ssSet('cv_painel_senha', senha); iniciar(); }
+  try { await api('painelLogin'); ssSet('cv_painel_senha', senha); if (location.hash.startsWith('#cliente/')) { $('#login').classList.add('hidden'); abrirDetalheDaUrl(); } else iniciar(); }
   catch (x) { $('#lerr').textContent = x.message === 'Failed to fetch' ? 'Sem conexão com o Google. Tente de novo.' : x.message; }
   $('#entrarBtn').textContent = 'Entrar';
 });
@@ -325,12 +464,16 @@ function normalizar(j){
     preco: Number(c['Preço (R$)']) || 0, freq: c['Frequência de coleta'], franquia: c['Franquia (kg/mês)'], excedente: c['Excedente (R$/kg)'],
     dVisita: parseD(c['Data da visita']), dContrato: parseD(c['Data do contrato']), dCadastro: parseD(c['Cadastrado em']),
     concorrente: c['Empresa concorrente'], contato: c['Contato'], telefone: c['Telefone'],
+    endereco: c['Endereço'], numero: c['Número'], email: c['E-mail'], doc: c['CPF / CNPJ'], obs: c['Observações'], atendimento: c['Horário de atendimento'],
+    dProposta: parseD(c['Data da proposta']), dCheckin: parseD(c['Check-in em']), precisao: c['Check-in precisão (m)'],
   }));
   // vendedores que só aparecem nos clientes
   clientes.forEach(c => { if (c.vcpf && !vendedores.some(v => v.cpf === c.vcpf)) vendedores.push({ cpf: c.vcpf, nome: c.vendedor }); });
   vendedores.sort((a, b) => String(a.nome).localeCompare(String(b.nome)));
   const metas = j.metas.map(m => ({ mes: String(m['Mês (AAAA-MM)']).slice(0, 7), cpf: digits(m['CPF do vendedor (vazio = todos)']), meta: Number(m['Meta de contratos']) || 0 }));
-  return { vendedores, clientes, metas, geradoEm: parseD(j.geradoEm) };
+  const parametros = (j.parametros || []).map(r => ({ cidade: String(r['Cidade (vazio = todas)'] || '').trim(), freq: String(r['Frequência'] || ''),
+    valor: numOuVazio(r['Valor mínimo (R$)']), franquia: numOuVazio(r['Franquia mínima (kg/mês)']), excedente: numOuVazio(r['Excedente mínimo (R$/kg)']) })).filter(r => r.freq);
+  return { vendedores, clientes, metas, parametros, geradoEm: parseD(j.geradoEm) };
 }
 
 /* ---------- filtros ---------- */
@@ -421,7 +564,8 @@ function kpis(cs){
     t('Valor mensal contratado', brlK(valor), delta(valor, valorAnt, brlK)) +
     t('Taxa de conversão', conv + '%', `${convN} contrato(s) em ${visitasP.length} visita(s)`) +
     t('Propostas em aberto', props.length, (props.length ? brlK(valorProps) + ' por mês em negociação' : 'nenhuma no período') +
-      (props.filter(c => diasAberta(c) > DIAS_PARADA).length ? `<br><b class="down">${props.filter(c => diasAberta(c) > DIAS_PARADA).length} há mais de ${DIAS_PARADA} dias</b>` : ''), 'propostas') +
+      (props.filter(c => diasAberta(c) > DIAS_PARADA).length ? `<br><b class="down">${props.filter(c => diasAberta(c) > DIAS_PARADA).length} há mais de ${DIAS_PARADA} dias</b>` : '') +
+      (props.filter(foraParam).length ? `<br><b style="color:#b86a00">⚠ ${props.filter(foraParam).length} fora do parâmetro</b>` : ''), 'propostas') +
     t('Carteira a visitar', aVisitar, 'clientes aguardando visita', 'carteira');
 }
 
@@ -559,29 +703,39 @@ function metas(){
   }).join('') + `<div class="legend"><span><span class="chip s-red">até 50%</span></span><span><span class="chip s-orange">51–88%</span></span><span><span class="chip s-lime">89–99%</span></span><span><span class="chip s-green">100%+</span></span></div>`;
 }
 function abrirMetas(){
-  const mes = mesAtual(), [y, m] = mes.split('-').map(Number);
-  const ms = dados.metas.filter(x => x.mes === mes), ger = ms.find(x => !x.cpf);
+  const hoje = new Date(), meses = [];
+  for (let i = 0; i <= 12; i++) { const d = new Date(hoje.getFullYear(), hoje.getMonth() + i, 1); meses.push(ymd(d).slice(0, 7)); }
+  const nomeMes = k => { const [y, m] = k.split('-').map(Number); return `${MESES[m - 1].replace(/^./, x => x.toUpperCase())} de ${y}`; };
+  let mes = meses[0];
   const bg = document.createElement('div'); bg.className = 'modal-bg';
-  // Meta da equipe = soma das metas individuais (não é digitada)
-  bg.innerHTML = `<div class="modal"><h3>Metas de ${MESES[m - 1]} de ${y}</h3>
-    <p>Defina quantos contratos cada vendedor deve fechar no mês. A meta da equipe é a soma das metas individuais e se atualiza sozinha.</p>
-    ${dados.vendedores.map(v => { const ind = ms.find(x => x.cpf && x.cpf.padStart(11, '0') === v.cpf);
-      const atual = ind && ind.meta ? ind.meta : (ger && ger.meta ? ger.meta : '');
-      return `<div class="mrow"><span>${esc(v.nome)}</span><input type="number" min="0" step="1" inputmode="numeric" data-cpf="${v.cpf}" data-nome="${esc(v.nome)}" value="${atual}"></div>`; }).join('')}
-    <div class="mrow mtot"><span><b>Meta da equipe</b><br><small style="color:var(--muted)">soma automática</small></span><b data-tot style="font-size:22px;min-width:110px;text-align:right">0</b></div>
-    ${ger && ger.meta ? `<p style="margin:12px 0 0;font-size:13px">A meta geral antiga (${ger.meta} por vendedor) foi usada para preencher quem não tinha meta própria. Ao salvar, ela deixa de existir.</p>` : ''}
-    <div class="mact"><button class="btn btn-soft" data-x>Cancelar</button><button class="btn btn-green" data-s>Salvar metas</button></div></div>`;
+  bg.innerHTML = `<div class="modal"><h3>🎯 Definir metas</h3>
+    <div class="pscope"><label>Mês da meta</label><select data-mes>${meses.map((k, i) => `<option value="${k}">${nomeMes(k)}${i === 0 ? ' (mês atual)' : ''}</option>`).join('')}</select></div>
+    <p>Quantos contratos cada vendedor deve fechar em <b data-nomemes></b>. A meta da equipe é a soma e se atualiza sozinha.</p>
+    <div data-lista></div>
+    <div class="mact"><button class="btn btn-soft" data-copiar>Copiar do mês anterior</button><span style="flex:1"></span><button class="btn btn-soft" data-x>Cancelar</button><button class="btn btn-green" data-s>Salvar metas</button></div></div>`;
   document.body.appendChild(bg);
-  const inputs = [...bg.querySelectorAll('input[data-cpf]')];
-  const somar = () => { bg.querySelector('[data-tot]').textContent = inputs.reduce((s, i) => s + (Math.max(0, Math.round(+i.value)) || 0), 0); };
-  inputs.forEach(i => i.oninput = somar); somar();
+  const valoresDe = k => { const ms = dados.metas.filter(x => x.mes === k), ger = ms.find(x => !x.cpf);
+    return Object.fromEntries(dados.vendedores.map(v => { const ind = ms.find(x => x.cpf && x.cpf.padStart(11, '0') === v.cpf); return [v.cpf, ind && ind.meta ? ind.meta : (ger && ger.meta ? ger.meta : '')]; })); };
+  const lista = vals => {
+    bg.querySelector('[data-nomemes]').textContent = nomeMes(mes);
+    bg.querySelector('[data-lista]').innerHTML = dados.vendedores.map(v => `<div class="mrow"><span>${esc(v.nome)}</span><input type="number" min="0" step="1" inputmode="numeric" data-cpf="${v.cpf}" data-nome="${esc(v.nome)}" value="${vals[v.cpf] ?? ''}"></div>`).join('') +
+      `<div class="mrow mtot"><span><b>Meta da equipe</b><br><small style="color:var(--muted)">soma automática</small></span><b data-tot style="font-size:22px;min-width:110px;text-align:right">0</b></div>`;
+    const ins = [...bg.querySelectorAll('input[data-cpf]')];
+    const somar = () => bg.querySelector('[data-tot]').textContent = ins.reduce((s, i) => s + (Math.max(0, Math.round(+i.value)) || 0), 0);
+    ins.forEach(i => i.oninput = somar); somar();
+  };
+  lista(valoresDe(mes));
+  bg.querySelector('[data-mes]').onchange = e => { mes = e.target.value; lista(valoresDe(mes)); };
+  bg.querySelector('[data-copiar]').onclick = () => { const [y, m] = mes.split('-').map(Number), ant = valoresDe(ymd(new Date(y, m - 2, 1)).slice(0, 7));
+    if (!Object.values(ant).some(v => v !== '')) return toast('O mês anterior não tem metas definidas.');
+    lista(ant); toast('Metas do mês anterior copiadas. Confira e salve.'); };
   bg.onclick = e => { if (e.target === bg || e.target.closest('[data-x]')) bg.remove(); };
   bg.querySelector('[data-s]').onclick = async () => {
-    const lista = inputs.map(i => ({ mes, cpf: i.dataset.cpf, nome: i.dataset.nome, meta: i.value === '' ? '' : Math.max(0, Math.round(+i.value)) }));
-    lista.push({ mes, cpf: '', nome: 'Todos', meta: '' }); // apaga a meta geral antiga, se houver
-    bg.querySelector('[data-s]').textContent = 'Salvando…';
-    try { await api('painelSalvarMetas', { dados: { metas: lista } }); bg.remove(); toast('Metas salvas! Os vendedores veem ao abrir o app.'); carregar(); }
-    catch (e) { toast('Erro ao salvar: ' + e.message); bg.querySelector('[data-s]').textContent = 'Salvar metas'; }
+    const ls = [...bg.querySelectorAll('input[data-cpf]')].map(i => ({ mes, cpf: i.dataset.cpf, nome: i.dataset.nome, meta: i.value === '' ? '' : Math.max(0, Math.round(+i.value)) }));
+    ls.push({ mes, cpf: '', nome: 'Todos', meta: '' }); // meta geral antiga deixa de valer
+    const b = bg.querySelector('[data-s]'); b.textContent = 'Salvando…';
+    try { await api('painelSalvarMetas', { dados: { metas: ls } }); bg.remove(); toast(`Metas de ${nomeMes(mes)} salvas! Os vendedores veem no app.`); carregar(); }
+    catch (e) { toast('Erro ao salvar: ' + e.message); b.textContent = 'Salvar metas'; }
   };
 }
 
@@ -638,10 +792,10 @@ function tabelaVisitas(){
   if (!lista.length) return $('#tbVisitas').innerHTML = '<div class="empty">Nenhum cliente nesta situação.</div>';
   $('#tbVisitas').innerHTML = `<table class="tbl"><thead><tr><th>Data</th><th>Cliente</th><th>Vendedor</th><th>Modalidade</th><th>Resultado</th><th class="num">Proposta</th><th></th></tr></thead><tbody>` +
     lista.slice(0, limiteVisitas).map(c => { const r = RES.find(x => x.k === c.res) || { txt: c.status === 'Visita em andamento' ? 'Em andamento' : 'A visitar' };
-      return `<tr><td class="nw">${c.dVisita ? br(c.dVisita) : '<small style="color:var(--muted)">cad. ' + br(c.dCadastro) + '</small>'}</td><td><b>${esc(c.nome)}</b><br><small style="color:var(--muted)">${esc(c.cidade)}${c.concorrente ? ' · atende: ' + esc(c.concorrente) : ''}</small></td>
+      return `<tr class="clk" onclick="if(!event.target.closest('a'))abrirDetalhe('${esc(c.id)}')" title="Abrir resumo"><td class="nw">${c.dVisita ? br(c.dVisita) : '<small style="color:var(--muted)">cad. ' + br(c.dCadastro) + '</small>'}</td><td><b>${esc(c.nome)}</b><br><small style="color:var(--muted)">${esc(c.cidade)}${c.concorrente ? ' · atende: ' + esc(c.concorrente) : ''}</small></td>
         <td class="nw">${esc(c.vendedor)}</td><td>${esc(c.modalidade || '—')}</td>
         <td><span class="tag"><i style="background:${c.res ? cor(c.res) : 'var(--lime)'}"></i>${r.txt}</span></td>
-        <td class="num nw">${c.preco ? brl(c.preco) + '<br><small style="color:var(--muted)">' + esc(c.freq) + '</small>' : '—'}</td>
+        <td class="num nw">${foraParam(c) ? '<span class="fora" title="Fora do parâmetro comercial">⚠ fora do parâmetro</span><br>' : ''}${c.preco ? brl(c.preco) + '<br><small style="color:var(--muted)">' + esc(c.freq) + '</small>' : '—'}</td>
         <td style="white-space:nowrap">${c.mapa ? `<a href="${esc(c.mapa)}" target="_blank" rel="noopener">mapa</a>` : ''}${c.pasta ? ` · <a href="${esc(c.pasta)}" target="_blank" rel="noopener">fotos</a>` : ''}</td></tr>`; }).join('') +
     '</tbody></table>' + (lista.length > limiteVisitas ? `<button class="more" onclick="limiteVisitas+=30;tabelaVisitas()">Mostrar mais (${lista.length - limiteVisitas})</button>` : '');
 }
@@ -694,21 +848,21 @@ const LISTAS = {
   carteira:  { titulo: 'Carteira a visitar', dados: () => clientesF.filter(c => !c.res), data: c => c.dCadastro, rotData: 'Cadastrado' },
 };
 function cardCliente(c, L){
-  const r = RES.find(x => x.k === c.res), d = L.data(c), hoje = new Date();
-  const dias = d ? Math.floor((hoje - d) / 864e5) : null;
-  const tag = r ? `<span class="tag"><i style="background:${cor(c.res)}"></i>${r.txt}</span>` : `<span class="tag"><i style="background:var(--lime)"></i>${c.status === 'Visita em andamento' ? 'Em andamento' : 'A visitar'}</span>`;
-  const idade = c.res === 'proposta' && dias !== null ? `<span class="dias ${dias > DIAS_PARADA ? 'critico' : dias > 7 ? 'alerta' : ''}">${dias === 0 ? 'aberta hoje' : `aberta há ${dias} dia${dias === 1 ? '' : 's'}`}</span>` : '';
-  const parada = c.res === 'proposta' && dias > DIAS_PARADA;
-  return `<div class="pc ${parada ? 'parada' : ''}" style="border-left-color:${parada ? 'var(--red)' : r ? cor(c.res) : 'var(--lime)'}">
-    <div class="top"><div><div class="nm">${esc(c.nome)}</div><div class="meta">${esc(c.cidade || '')}${c.bairro ? ' · ' + esc(c.bairro) : ''}</div></div>${tag}</div>
-    <div class="meta">👤 ${esc(c.vendedor)} · ${L.rotData} em <b style="color:var(--ink)">${br(d) || '—'}</b> ${idade}</div>
-    ${c.contato || c.telefone ? `<div class="meta">📞 ${esc(c.contato || '')}${c.contato && c.telefone ? ' · ' : ''}${esc(c.telefone || '')}</div>` : ''}
-    ${c.preco ? `<div class="vals"><div><small>Preço</small><b>${brl(c.preco)}</b></div><div><small>Frequência</small><b>${esc(c.freq || '—')}</b></div>
-      <div><small>Franquia</small><b>${c.franquia ? esc(c.franquia) + ' kg/mês' : '—'}</b></div><div><small>Excedente</small><b>${c.excedente ? brl(c.excedente) + '/kg' : '—'}</b></div></div>` : ''}
-    ${c.concorrente ? `<div class="meta">Atendido hoje por: <b style="color:var(--ink)">${esc(c.concorrente)}</b></div>` : ''}
-    <div class="lk">${c.mapa ? `<a href="${esc(c.mapa)}" target="_blank" rel="noopener">📍 Ver no mapa</a>` : ''}${c.pasta ? `<a href="${esc(c.pasta)}" target="_blank" rel="noopener">📷 Fotos</a>` : ''}${c.telefone ? `<a href="https://wa.me/55${digits(c.telefone)}" target="_blank" rel="noopener">💬 WhatsApp</a>` : ''}</div>
-  </div>`;
+  const r = RES.find(x => x.k === c.res), d = L.data(c);
+  const dias = d ? Math.floor((new Date() - d) / 864e5) : null, parada = c.res === 'proposta' && dias > DIAS_PARADA;
+  const st = r ? r.txt : (c.status === 'Visita em andamento' ? 'Em andamento' : 'A visitar');
+  const corSt = parada ? 'var(--red)' : r ? cor(c.res) : 'var(--lime)';
+  const idade = c.res === 'proposta' && dias !== null ? `<span class="age ${parada ? 'critico' : dias > 7 ? 'alerta' : ''}">${dias === 0 ? 'hoje' : dias + (dias === 1 ? ' dia' : ' dias')}</span>` : '';
+  const fora = foraParam(c);
+  return `<button class="pc2 ${parada ? 'parada' : ''}" style="--st:${corSt}" onclick="abrirDetalhe('${esc(c.id)}')" title="Abrir resumo em nova guia">
+    <div class="pc2-h"><span class="dot"></span><span class="st">${st}</span>${idade}</div>
+    <div class="pc2-n">${esc(c.nome)}</div>
+    <div class="pc2-s">${esc(c.cidade || '—')} · ${esc(c.vendedor || '')}</div>
+    ${c.preco ? `<div class="pc2-v">${brl(c.preco)}<small>/mês · ${esc(c.freq || '')}</small></div>` : `<div class="pc2-v pc2-v0">${c.concorrente ? 'Atende hoje: ' + esc(c.concorrente) : 'Sem proposta'}</div>`}
+    <div class="pc2-f"><span>${L.rotData} ${br(d) || '—'}</span>${fora ? '<span class="fora">⚠ Fora do parâmetro</span>' : ''}<span class="abrir">Resumo ↗</span></div>
+  </button>`;
 }
+
 function abrirLista(tipo){
   const L = LISTAS[tipo], base = L.dados();
   const cidades = [...new Set(base.map(c => c.cidade).filter(Boolean))].sort((a, b) => a.localeCompare(b));
@@ -734,7 +888,9 @@ function abrirLista(tipo){
     const dt = c => (L.data(c) || 0) - 0;
     lista.sort(o === 'ant' ? (a, b) => dt(a) - dt(b) : o === 'valor' ? (a, b) => b.preco - a.preco : o === 'nome' ? (a, b) => String(a.nome).localeCompare(String(b.nome)) : (a, b) => dt(b) - dt(a));
     const soma = lista.reduce((s, c) => s + c.preco, 0), vend = new Set(lista.map(c => c.vcpf)).size;
+    const nFora = lista.filter(foraParam).length;
     bg.querySelector('[data-sum]').innerHTML = `<div><b>${lista.length}</b>${lista.length === 1 ? 'cliente' : 'clientes'}</div>` +
+      (nFora ? `<div style="color:#8a4b00;background:var(--orange-bg)"><b style="color:#8a4b00">${nFora}</b>fora do parâmetro</div>` : '') +
       (soma && (tipo === 'contratos' || tipo === 'propostas' || tipo === 'paradas') ? `<div><b>${brl(soma)}</b>${tipo === 'contratos' ? 'por mês contratados' : 'por mês em negociação'}</div>` : '') + `<div><b>${vend}</b>vendedor(es)</div>` +
       (tipo === 'propostas' || tipo === 'paradas' ? `<div style="color:var(--red)"><b style="color:var(--red)">${lista.filter(c => diasAberta(c) > DIAS_PARADA).length}</b>abertas há mais de ${DIAS_PARADA} dias</div>` : '');
     bg.querySelector('[data-g]').innerHTML = lista.length ? lista.map(c => cardCliente(c, L)).join('') : '<div class="empty" style="grid-column:1/-1">Nenhum cliente encontrado.</div>';
@@ -744,10 +900,81 @@ function abrirLista(tipo){
   desenhar();
 }
 
+/* =========================================================
+   RESUMO DO CLIENTE (nova guia)
+   ========================================================= */
+function paraGuardar(c){ const o = {}; Object.entries(c).forEach(([k, v]) => o[k] = v instanceof Date ? ymd(v) + 'T' + v.toTimeString().slice(0, 8) : v); return o; }
+function abrirDetalhe(id){
+  const c = dados.clientes.find(x => String(x.id) === String(id)); if (!c) return;
+  try { localStorage.setItem('cv_painel_det_' + id, JSON.stringify({ c: paraGuardar(c), parametros: dados.parametros, em: Date.now() })); } catch (e) {}
+  window.open(location.pathname + '#cliente/' + encodeURIComponent(id), '_blank');
+}
+function renderDetalhe(c, parametros){
+  document.title = c.nome + ' – Resumo';
+  $('#login').classList.add('hidden'); $('#app').classList.add('hidden');
+  const r = RES.find(x => x.k === c.res), st = r ? r.txt : (c.status === 'Visita em andamento' ? 'Visita em andamento' : 'A visitar');
+  const corSt = r ? cor(c.res) : 'var(--lime)', diasProp = c.res === 'proposta' && c.dVisita ? Math.floor((new Date() - c.dVisita) / 864e5) : null;
+  const av = avaliar(c, parametros);
+  const lin = (rot, val) => val ? `<div class="dl"><span>${rot}</span><b>${val}</b></div>` : '';
+  const tel = digits(c.telefone);
+  $('#detalhe').innerHTML = `
+    <header class="top"><div class="row"><img src="logo.svg" alt="Cheiro Verde Ambiental"><h1>Resumo do cliente</h1>
+      <button class="tbtn" onclick="window.print()">🖨 Imprimir</button><button class="tbtn" onclick="window.close()">Fechar guia</button></div></header>
+    <main class="det">
+      <div class="dhero" style="--st:${corSt}">
+        <div><span class="dst"><i></i>${st}</span>${diasProp !== null ? `<span class="age ${diasProp > DIAS_PARADA ? 'critico' : diasProp > 7 ? 'alerta' : ''}">${diasProp === 0 ? 'aberta hoje' : `aberta há ${diasProp} dia${diasProp === 1 ? '' : 's'}`}</span>` : ''}</div>
+        <h2>${esc(c.nome)}</h2>
+        <p>${esc([c.cidade, c.bairro].filter(Boolean).join(' · '))}${c.doc ? ' · ' + esc(c.doc) : ''}</p>
+        <div class="dacts">
+          ${tel ? `<a class="dbtn wa" href="https://wa.me/55${tel}" target="_blank" rel="noopener">💬 WhatsApp</a><a class="dbtn" href="tel:${tel}">📞 Ligar</a>` : ''}
+          ${c.email ? `<a class="dbtn" href="mailto:${esc(c.email)}">✉ E-mail</a>` : ''}
+          ${c.mapa ? `<a class="dbtn" href="${esc(c.mapa)}" target="_blank" rel="noopener">📍 Mapa do check-in</a>` : ''}
+          ${c.pasta ? `<a class="dbtn" href="${esc(c.pasta)}" target="_blank" rel="noopener">📷 Fotos (${c.fotos || 0})</a>` : ''}
+        </div>
+      </div>
+
+      ${av && !av.ok ? `<div class="dalerta"><b>⚠ Proposta fora do parâmetro comercial${av.regra.cidade ? ' (campanha ' + esc(av.regra.cidade) + ')' : ''}</b><ul>${av.falhas.map(f => `<li>${f}</li>`).join('')}</ul></div>` : ''}
+      ${av && av.ok ? `<div class="dok">✓ Proposta dentro do parâmetro comercial${av.regra.cidade ? ' (campanha ' + esc(av.regra.cidade) + ')' : ''}</div>` : ''}
+
+      <div class="dgrid2">
+        ${c.preco ? `<section class="dcard dprop"><h3>Proposta</h3>
+          <div class="big">${brl(c.preco)}<small>/mês</small></div>
+          <div class="kv4"><div><small>Frequência</small><b>${esc(c.freq || '—')}</b></div><div><small>Franquia</small><b>${c.franquia ? esc(c.franquia) + ' kg/mês' : '—'}</b></div>
+          <div><small>Excedente</small><b>${c.excedente ? brl(c.excedente) + '/kg' : '—'}</b></div><div><small>Valor por ano</small><b>${brl(c.preco * 12)}</b></div></div></section>` : ''}
+        <section class="dcard"><h3>Linha do tempo</h3>
+          ${lin('Cadastrado em', br(c.dCadastro))}${lin('Check-in', c.dCheckin ? br(c.dCheckin) + ' ' + c.dCheckin.toTimeString().slice(0, 5) + (c.precisao ? ` (±${c.precisao} m)` : '') : '')}
+          ${lin('Visita finalizada', br(c.dVisita))}${lin('Proposta', br(c.dProposta))}${lin('Contrato fechado', br(c.dContrato))}</section>
+        <section class="dcard"><h3>Contato</h3>
+          ${lin('Responsável', esc(c.contato))}${lin('Telefone', esc(c.telefone))}${lin('E-mail', esc(c.email))}${lin('Atendimento', esc(c.atendimento))}
+          ${lin('Endereço', esc([c.endereco, c.numero].filter(Boolean).join(', ')))}${lin('Cidade', esc(c.cidade))}</section>
+        <section class="dcard"><h3>Visita</h3>
+          ${lin('Vendedor', esc(c.vendedor))}${lin('Modalidade', esc(c.modalidade))}${lin('Motivo', esc(c.motivo))}${lin('Empresa que atende hoje', esc(c.concorrente))}
+          ${c.obs ? `<div class="dobs"><small>Observações</small>${esc(c.obs)}</div>` : ''}</section>
+      </div>
+    </main>
+    <footer class="rodape">Painel da Gerência · Cheiro Verde Ambiental · <b>Versão ${VERSAO}</b></footer>`;
+  $('#detalhe').classList.remove('hidden');
+}
+async function abrirDetalheDaUrl(){
+  const id = decodeURIComponent(location.hash.slice('#cliente/'.length));
+  let pl = null; try { pl = JSON.parse(localStorage.getItem('cv_painel_det_' + id)); } catch (e) {}
+  if (pl && pl.c) {
+    const c = pl.c; Object.keys(c).forEach(k => { if (/^d[A-Z]/.test(k) && c[k]) c[k] = parseD(c[k]); });
+    dados = dados || { parametros: pl.parametros || [], clientes: [], vendedores: [], metas: [] };
+    return renderDetalhe(c, pl.parametros || []);
+  }
+  if (!senha) { $('#login').classList.remove('hidden'); return; }
+  try { dados = normalizar(await api('painelDados')); const c = dados.clientes.find(x => String(x.id) === id);
+    if (c) renderDetalhe(c, dados.parametros); else { $('#detalhe').innerHTML = '<div class="empty">Cliente não encontrado.</div>'; $('#detalhe').classList.remove('hidden'); } }
+  catch (e) { toast('Não foi possível carregar: ' + e.message); }
+}
+
 let rsz; window.addEventListener('resize', () => { clearTimeout(rsz); rsz = setTimeout(() => { if (dados) graficoDias(); }, 150); });
 
 /* ---------- início ---------- */
-if (senha) iniciar(); else $('#login').classList.remove('hidden');
+document.querySelectorAll('.ver-num').forEach(e => e.textContent = VERSAO);
+if (location.hash.startsWith('#cliente/')) abrirDetalheDaUrl();
+else if (senha) iniciar(); else $('#login').classList.remove('hidden');
 </script>
 </body>
 </html>
