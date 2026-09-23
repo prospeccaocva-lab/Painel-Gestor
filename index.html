@@ -121,6 +121,11 @@
   .pc2:hover{transform:translateY(-2px);box-shadow:0 2px 4px rgba(20,50,30,.08),0 12px 28px rgba(20,50,30,.12)}
   .pc2:focus-visible{outline:3px solid var(--lime)}
   .pc2.parada{background:#fff8f8}
+  .alertaParam{flex-basis:100%;background:var(--orange-bg);color:#6b3c00;border-radius:10px;padding:9px 14px;font-size:14px;font-weight:500;border-left:5px solid var(--orange)}
+  .alertaParam a{color:#b53030;font-weight:800}
+  .alertaParam.ok{background:var(--ok-bg);color:var(--green-d);border-left-color:var(--ok)}
+  .alertaParam.neutro{background:#f1f4ef;color:var(--muted);border-left-color:#c9d2c6} .alertaParam.neutro a{color:var(--green-d)}
+  .falhas{margin:4px 0 0;padding-left:18px;font-size:13px;color:#8a4b00}
   .pc2.forap{box-shadow:0 0 0 2px var(--orange),var(--shadow)}
   .pc2-fora{margin:-16px -16px 6px;padding:6px 16px;background:var(--orange);color:#fff;font-size:12.5px;font-weight:700;border-radius:12px 12px 0 0}
   .btn-red{background:var(--red);color:#fff}
@@ -277,7 +282,7 @@
       <span class="sp"></span>
       <span class="fg"><span class="lbl">Vendedor</span><select id="selVend"></select></span>
       <span class="fg"><span class="lbl">Cidade</span><select id="selCid"></select></span>
-      <span class="fg"><span class="lbl">Situação</span><select id="selSit"></select></span>
+      <div class="alertaParam" id="alertaParam"></div>
     </div>
 
     <div class="kpis" id="kpis"></div>
@@ -330,7 +335,7 @@
    ========================================================= */
 const API = 'https://script.google.com/macros/s/AKfycbyKfrfeTPq8MrBbIGsZp54_6l8yPKWDV6omrG7GCBlrfpzkTktzhdd8gUBlSdFivvGU/exec';
 const ATUALIZAR_A_CADA_MIN = 5;
-const VERSAO = '8';
+const VERSAO = '9';
 
 /* ---------- utilidades ---------- */
 const $ = s => document.querySelector(s);
@@ -552,7 +557,6 @@ document.querySelectorAll('#segPeriodo button').forEach(b => b.onclick = () => {
 ['#dIni', '#dFim'].forEach(s => $(s).onchange = render);
 $('#selVend').onchange = e => { filtro.vend = e.target.value; render(); };
 $('#selCid').onchange = e => { filtro.cid = e.target.value; render(); };
-$('#selSit').onchange = e => { filtro.sit = e.target.value; render(); };
 const SITS = [ { k: 'todas', txt: 'Todas as situações' }, { k: 'programadas', txt: 'Programadas (agenda do período)' }, { k: 'realizadas', txt: 'Realizadas (finalizadas)' },
   { k: 'pendente', txt: 'A visitar' }, { k: 'andamento', txt: 'Visita em andamento' }, ...RES.map(r => ({ k: r.k, txt: r.txt })) ];
 function montarFiltroVend(){
@@ -562,7 +566,6 @@ function montarFiltroVend(){
   const cids = [...new Set(dados.clientes.map(c => c.cidade).filter(Boolean))].sort((a, b) => a.localeCompare(b));
   const sc = $('#selCid'); sc.innerHTML = '<option value="todas">Todas as cidades</option>' + cids.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
   sc.value = cids.includes(filtro.cid) ? filtro.cid : 'todas'; filtro.cid = sc.value;
-  $('#selSit').innerHTML = SITS.map(x => `<option value="${x.k}">${x.txt}</option>`).join(''); $('#selSit').value = filtro.sit;
 }
 const doVend = c => (filtro.vend === 'todos' || c.vcpf === filtro.vend) && (filtro.cid === 'todas' || c.cidade === filtro.cid);
 // Agenda do período: cadastrado até o fim do período e ainda sem visita no início dele
@@ -592,7 +595,7 @@ function render(){
   const cs = dados.clientes.filter(doVend); clientesF = cs;
   visitasP = cs.filter(c => c.res && dentro(c.dVisita, P.ini, P.fim));
   contratosP = cs.filter(c => c.res === 'contrato' && dentro(c.dContrato, P.ini, P.fim));
-  $('#selSit').value = filtro.sit;
+  alertaParametros();
   kpis(cs); cardParadas(); situacoes(cs); visitometro(cs); relogio(); graficoDias(); resultados(); metas(); mapa(); tabelaVendedores(); limiteVisitas = 30; tabelaVisitas(); carteira(); concorrentes();
 }
 
@@ -601,6 +604,50 @@ function delta(atual, ant, fmt = v => v){
   const d = atual - ant, cls = d > 0 ? 'up' : d < 0 ? 'down' : '';
   return `<b class="${cls}">${d > 0 ? '▲' : d < 0 ? '▼' : '='} ${fmt(Math.abs(d))}</b> vs período anterior`;
 }
+/* ---------- Alerta: contratos fora do parâmetro (todos, independe do período) ---------- */
+const contratosForaParam = () => clientesF.filter(c => c.res === 'contrato' && foraParam(c)).sort((a, b) => (b.dContrato || 0) - (a.dContrato || 0));
+function alertaParametros(){
+  const el = $('#alertaParam'), temParam = dados.parametros.length > 0, l = contratosForaParam();
+  if (!temParam) { el.className = 'alertaParam neutro'; el.innerHTML = '⚙ Nenhum parâmetro comercial definido. <a href="#" onclick="abrirParametros();return false">Definir parâmetros</a>'; return; }
+  if (!l.length) { el.className = 'alertaParam ok'; el.innerHTML = '✓ Todos os contratos estão dentro dos parâmetros'; return; }
+  el.className = 'alertaParam';
+  el.innerHTML = `⚠ <b>${l.length}</b> contrato${l.length > 1 ? 's' : ''} fora do${l.length > 1 ? 's' : ''} parâmetro${l.length > 1 ? 's' : ''} – <a href="#" onclick="abrirForaParam();return false">Verificar</a>`;
+}
+function abrirForaParam(){
+  const l = contratosForaParam();
+  const filtros = [filtro.vend !== 'todos' ? (dados.vendedores.find(v => v.cpf === filtro.vend) || {}).nome : 'todos os vendedores', filtro.cid !== 'todas' ? filtro.cid : 'todas as cidades'].join(' · ');
+  try { localStorage.setItem('cv_painel_fora', JSON.stringify({ lista: l.map(paraGuardar), parametros: dados.parametros, filtros, em: Date.now() })); } catch (e) {}
+  window.open(location.pathname + '#fora-parametro', '_blank');
+}
+function renderForaParam(){
+  let pl = null; try { pl = JSON.parse(localStorage.getItem('cv_painel_fora')); } catch (e) {}
+  if (!pl) { $('#detalhe').innerHTML = '<div class="empty">Abra esta página pelo painel (link “Verificar”).</div>'; $('#detalhe').classList.remove('hidden'); return; }
+  const lista = pl.lista.map(c => { Object.keys(c).forEach(k => { if (/^d[A-Z]/.test(k) && c[k]) c[k] = parseD(c[k]); }); return c; });
+  dados = { parametros: pl.parametros || [], clientes: lista, vendedores: [], metas: [] };
+  document.title = 'Contratos fora do parâmetro';
+  $('#login').classList.add('hidden'); $('#app').classList.add('hidden');
+  const soma = lista.reduce((s, c) => s + c.preco, 0);
+  const card = c => { const a = avaliar(c);
+    return `<button class="pc2 forap" style="--st:var(--r-contrato)" onclick="abrirDetalhe('${esc(c.id)}')" title="Abrir resumo em nova guia">
+      <div class="pc2-fora">⚠ Fora do parâmetro comercial${a && a.regra.cidade ? ' · campanha ' + esc(a.regra.cidade) : ''}</div>
+      <div class="pc2-h"><span class="dot"></span><span class="st">Contrato fechado</span></div>
+      <div class="pc2-n">${esc(c.nome)}</div>
+      <div class="pc2-s">${esc(c.cidade || '—')} · ${esc(c.vendedor || '')}</div>
+      <div class="pc2-v">${brl(c.preco)}<small>/mês · ${esc(c.freq || '')}</small></div>
+      <ul class="falhas">${a ? a.falhas.map(f => `<li>${f}</li>`).join('') : ''}</ul>
+      <div class="pc2-f"><span>Contrato ${br(c.dContrato) || '—'}</span><span class="abrir">Resumo ↗</span></div></button>`; };
+  $('#detalhe').innerHTML = `
+    <header class="top"><div class="row"><img src="logo.svg" alt="Cheiro Verde Ambiental"><h1>Contratos fora do parâmetro</h1>
+      <button class="tbtn" onclick="window.print()">🖨 Imprimir</button><button class="tbtn" onclick="window.close()">Fechar guia</button></div></header>
+    <main class="det" style="max-width:1200px">
+      <div class="dhero" style="--st:var(--orange)"><h2 style="margin-top:0">${lista.length} contrato${lista.length === 1 ? '' : 's'} fora do parâmetro</h2>
+        <p>${esc(pl.filtros)} · ${brl(soma)} por mês · todos os períodos</p></div>
+      ${lista.length ? `<div class="dgrid" style="padding:0">${lista.map(card).join('')}</div>` : '<div class="dok">✓ Nenhum contrato fora do parâmetro.</div>'}
+    </main>
+    <footer class="rodape">Painel da Gerência · Cheiro Verde Ambiental · <b>Versão ${VERSAO}</b></footer>`;
+  $('#detalhe').classList.remove('hidden');
+}
+
 function kpis(cs){
   const visAnt = cs.filter(c => c.res && dentro(c.dVisita, P.antIni, P.antFim)).length;
   const conAnt = cs.filter(c => c.res === 'contrato' && dentro(c.dContrato, P.antIni, P.antFim));
@@ -1030,6 +1077,7 @@ let rsz; window.addEventListener('resize', () => { clearTimeout(rsz); rsz = setT
 /* ---------- início ---------- */
 document.querySelectorAll('.ver-num').forEach(e => e.textContent = VERSAO);
 if (location.hash.startsWith('#cliente/')) abrirDetalheDaUrl();
+else if (location.hash === '#fora-parametro') renderForaParam();
 else if (senha) iniciar(); else $('#login').classList.remove('hidden');
 </script>
 </body>
