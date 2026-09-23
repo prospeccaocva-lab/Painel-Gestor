@@ -48,7 +48,8 @@
   .top .upd{font-size:13px;opacity:.85}
   .tbtn{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border-radius:10px;background:rgba(255,255,255,.14);font-weight:600;font-size:14px;color:#fff}
   .tbtn-lime{background:var(--lime);color:#1d2a05} .tbtn-lime:hover{background:#c2dc1f}
-  .sits{display:flex;flex-wrap:wrap;gap:8px;margin:-4px 0 16px}
+  .sits{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 14px}
+  .sits .sit{box-shadow:none;border:2px solid var(--line)} .sits .sit.on{border-color:var(--green);background:#eaf5ed}
   .sit{display:flex;align-items:center;gap:8px;background:var(--surface);border-radius:12px;box-shadow:var(--shadow);padding:9px 12px;font-size:13.5px;border:2px solid transparent}
   .sit b{font-size:17px} .sit i{width:9px;height:9px;border-radius:50%;display:inline-block}
   .sit.on{border-color:var(--green)} .sit.tot{background:#eaf5ed}
@@ -218,7 +219,6 @@
 
     <div class="kpis" id="kpis"></div>
 
-    <div class="sits" id="sits"></div>
 
     <div class="card alerta-card" id="cardParadas"></div>
 
@@ -246,8 +246,9 @@
     </div>
 
     <div class="grid">
-      <div class="card"><h2><span id="tbTitulo">Visitas realizadas</span> <span style="display:flex;gap:8px"><input class="search" id="busca" placeholder="Buscar cliente, cidade…"><button class="lnk" onclick="baixarCSV()">Baixar CSV</button></span></h2>
-        <p class="sub">Mais recentes primeiro</p><div class="tscroll" id="tbVisitas"></div></div>
+      <div class="card"><h2><span id="tbTitulo">Visitas realizadas</span> <button class="lnk" onclick="baixarCSV()">Baixar CSV</button></h2>
+        <p class="sub">Clique numa situação para filtrar a lista (clique de novo para voltar a todas) · mais recentes primeiro</p>
+        <div class="sits" id="sits"></div><div class="tscroll" id="tbVisitas"></div></div>
     </div>
   </main>
 </section>
@@ -357,7 +358,6 @@ $('#selCid').onchange = e => { filtro.cid = e.target.value; render(); };
 $('#selSit').onchange = e => { filtro.sit = e.target.value; render(); };
 const SITS = [ { k: 'todas', txt: 'Todas as situações' }, { k: 'programadas', txt: 'Programadas (agenda do período)' }, { k: 'realizadas', txt: 'Realizadas (finalizadas)' },
   { k: 'pendente', txt: 'A visitar' }, { k: 'andamento', txt: 'Visita em andamento' }, ...RES.map(r => ({ k: r.k, txt: r.txt })) ];
-$('#busca').oninput = () => { limiteVisitas = 30; tabelaVisitas(); };
 function montarFiltroVend(){
   const s = $('#selVend'), atual = filtro.vend;
   s.innerHTML = '<option value="todos">Todos os vendedores</option>' + dados.vendedores.map(v => `<option value="${v.cpf}">${esc(v.nome)}</option>`).join('');
@@ -432,8 +432,7 @@ function situacoes(cs){
   $('#sits').innerHTML = item('programadas', 'Programadas', '', 'tot') + item('realizadas', 'Realizadas', '', 'tot') +
     item('pendente', 'A visitar', 'var(--lime)') + item('andamento', 'Em andamento', '#c9d2c6') +
     RES.map(r => item(r.k, r.txt, cor(r.k))).join('');
-  $('#sits').querySelectorAll('[data-sit]').forEach(b => b.onclick = () => { filtro.sit = filtro.sit === b.dataset.sit ? 'todas' : b.dataset.sit; render();
-    document.querySelector('#tbTitulo').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+  $('#sits').querySelectorAll('[data-sit]').forEach(b => b.onclick = () => { filtro.sit = filtro.sit === b.dataset.sit ? 'todas' : b.dataset.sit; render(); });
 }
 
 /* ---------- Medidores (semicírculo) ---------- */
@@ -629,7 +628,7 @@ function tabelaVendedores(){
 /* ---------- Tabela de visitas ---------- */
 let limiteVisitas = 30;
 function visitasFiltradas(){
-  const q = $('#busca').value.trim().toLowerCase();
+  const q = '';
   return clientesF.filter(naSituacao).filter(c => !q || [c.nome, c.cidade, c.bairro, c.vendedor, c.concorrente].some(x => String(x || '').toLowerCase().includes(q)))
     .sort((a, b) => (b.dVisita || b.dCadastro || 0) - (a.dVisita || a.dCadastro || 0));
 }
