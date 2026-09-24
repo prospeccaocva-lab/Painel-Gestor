@@ -272,7 +272,7 @@
     <img src="logo.svg" alt="Cheiro Verde Ambiental">
     <h1>Painel da Gerência · Vendas Externas</h1>
     <span class="upd" id="upd"></span>
-    <button class="tbtn" onclick="carregar()">⟳ Atualizar</button>
+    <button class="tbtn" onclick="carregar(true, true)">⟳ Atualizar</button>
     <button class="tbtn tbtn-lime" onclick="abrirMetas()">🎯 Definir metas</button>
     <button class="tbtn" onclick="abrirParametros()">⚙ Parâmetros</button>
     <button class="tbtn" onclick="abrirVendedores()">👥 Vendedores <span class="nbadge hidden" id="nPend"></span></button>
@@ -344,7 +344,7 @@
    ========================================================= */
 const API = 'https://script.google.com/macros/s/AKfycbyKfrfeTPq8MrBbIGsZp54_6l8yPKWDV6omrG7GCBlrfpzkTktzhdd8gUBlSdFivvGU/exec';
 const ATUALIZAR_A_CADA_MIN = 5;
-const VERSAO = '13';
+const VERSAO = '14';
 
 /* ---------- utilidades ---------- */
 const $ = s => document.querySelector(s);
@@ -544,7 +544,7 @@ function abrirParametros(){
 
   bg.querySelector('[data-s]').onclick = async () => {
     guardar(); const b = bg.querySelector('[data-s]'); b.textContent = 'Salvando…';
-    try { await gravar(); bg.remove(); toast('Parâmetros salvos!'); carregar(); }
+    try { await gravar(); bg.remove(); toast('Parâmetros salvos!'); carregar(true); }
     catch (e) { toast('Erro ao salvar: ' + e.message); b.textContent = 'Salvar parâmetros'; }
   };
 }
@@ -552,19 +552,37 @@ function abrirParametros(){
 /* ---------- login ---------- */
 $('#loginForm').addEventListener('submit', async e => {
   e.preventDefault(); senha = $('#senha').value; $('#lerr').textContent = ''; $('#entrarBtn').textContent = 'Entrando…';
-  try { await api('painelLogin'); ssSet('cv_painel_senha', senha); if (location.hash.startsWith('#cliente/')) { $('#login').classList.add('hidden'); abrirDetalheDaUrl(); } else iniciar(); }
+  try { // a própria senha já traz os dados (uma ida ao Google em vez de duas)
+    const j = await api('painelDados'); ssSet('cv_painel_senha', senha);
+    if (location.hash.startsWith('#cliente/')) { $('#login').classList.add('hidden'); abrirDetalheDaUrl(); } else iniciar(j); }
   catch (x) { $('#lerr').textContent = x.message === 'Failed to fetch' ? 'Sem conexão com o Google. Tente de novo.' : x.message; }
   $('#entrarBtn').textContent = 'Entrar';
 });
-function sair(){ ssSet('cv_painel_senha', null); senha = null; location.reload(); }
-function iniciar(){ $('#login').classList.add('hidden'); $('#app').classList.remove('hidden'); carregar(); setInterval(() => carregar(true), ATUALIZAR_A_CADA_MIN * 60000); }
+const K_CACHE = 'cv_painel_cache'; // última carga guardada neste navegador: o painel abre na hora e atualiza em seguida
+function sair(){ ssSet('cv_painel_senha', null); try { localStorage.removeItem(K_CACHE); } catch (e) {} senha = null; location.reload(); }
+function iniciar(j){
+  $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
+  if (j) aplicar(j);
+  else { try { const c = lsG(K_CACHE); if (c) { aplicar(JSON.parse(c)); ultimaCarga = c; } } catch (e) {} carregar(!!dados); }
+  setInterval(() => { if (!document.hidden) carregar(true); }, ATUALIZAR_A_CADA_MIN * 60000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - ultimaVez > 60000) carregar(true); });
+}
 
 /* ---------- carga e normalização ---------- */
-async function carregar(silencioso){
+let ultimaCarga = '', ultimaVez = 0, carregando = false;
+function aplicar(j){
+  delete j.dispositivo; const txt = JSON.stringify(j); ultimaVez = Date.now();
+  if (txt !== ultimaCarga) { ultimaCarga = txt; dados = normalizar(j); montarFiltroVend(); render(); lsS(K_CACHE, txt); } // só redesenha se algo mudou
+  $('#upd').textContent = 'Atualizado às ' + new Date().toTimeString().slice(0, 5);
+}
+// silencioso: sem tela de "carregando" (os dados atuais continuam na tela) · forcar: lê a planilha agora, sem a cópia pronta do Google
+async function carregar(silencioso, forcar){
+  if (carregando) return; carregando = true;
   let ld; if (!silencioso) { ld = document.createElement('div'); ld.className = 'loading'; ld.textContent = 'Carregando dados da planilha…'; document.body.appendChild(ld); }
-  try { dados = normalizar(await api('painelDados')); montarFiltroVend(); render(); $('#upd').textContent = 'Atualizado às ' + new Date().toTimeString().slice(0, 5); }
-  catch (e) { if (/senha/i.test(e.message)) return sair(); toast('Não foi possível carregar: ' + e.message); }
-  if (ld) ld.remove();
+  else $('#upd').textContent = 'Atualizando…';
+  try { aplicar(await api('painelDados', forcar ? { forcar: true } : {})); }
+  catch (e) { if (/senha/i.test(e.message)) { carregando = false; return sair(); } toast('Não foi possível carregar: ' + e.message); $('#upd').textContent = ''; }
+  if (ld) ld.remove(); carregando = false;
 }
 function normalizar(j){
   const vendedores = j.vendedores.map(v => ({ cpf: digits(v['CPF']).padStart(11, '0'), nome: v['Nome'], email: v['E-mail'],
@@ -928,7 +946,7 @@ function abrirMetas(){
     const ls = [...bg.querySelectorAll('input[data-cpf]')].map(i => ({ mes, cpf: i.dataset.cpf, nome: i.dataset.nome, meta: i.value === '' ? '' : Math.max(0, Math.round(+i.value)) }));
     ls.push({ mes, cpf: '', nome: 'Todos', meta: '' }); // meta geral antiga deixa de valer
     const b = bg.querySelector('[data-s]'); b.textContent = 'Salvando…';
-    try { await api('painelSalvarMetas', { dados: { metas: ls } }); bg.remove(); toast(`Metas de ${nomeMes(mes)} salvas! Os vendedores veem no app.`); carregar(); }
+    try { await api('painelSalvarMetas', { dados: { metas: ls } }); bg.remove(); toast(`Metas de ${nomeMes(mes)} salvas! Os vendedores veem no app.`); carregar(true); }
     catch (e) { toast('Erro ao salvar: ' + e.message); b.textContent = 'Salvar metas'; }
   };
 }
@@ -943,9 +961,10 @@ function mapa(){
   }
   if (camada) camada.remove(); camada = L.layerGroup().addTo(mapaL);
   const pts = clientesF.filter(c => c.res && naSituacao(c) && c.lat && c.lng && dentro(c.dVisita, P.ini, P.fim));
+  const css = getComputedStyle(document.documentElement);
   pts.forEach(c => {
     const k = c.res === 'contrato' || c.res === 'proposta' ? c.res : 'outraEmpresa';
-    const cr = getComputedStyle(document.documentElement).getPropertyValue('--r-' + k).trim();
+    const cr = css.getPropertyValue('--r-' + k).trim();
     L.circleMarker([c.lat, c.lng], { radius: c.res === 'contrato' ? 9 : 7, color: '#fff', weight: 2, fillColor: cr, fillOpacity: .95 })
       .bindPopup(`<b>${esc(c.nome)}</b><br>${esc(RES.find(r => r.k === c.res).txt)} · ${br(c.dVisita)}<br>Vendedor: ${esc(c.vendedor)}` +
         (c.preco ? `<br>Proposta: ${brl(c.preco)}/mês` : '') + (c.pasta ? `<br><a href="${esc(c.pasta)}" target="_blank" rel="noopener">Ver fotos</a>` : ''))
