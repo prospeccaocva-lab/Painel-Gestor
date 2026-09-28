@@ -18,7 +18,7 @@
     --red:#d64545; --red-bg:#fdeaea; --orange:#ef8a00; --orange-bg:#fff1dc; --ok:#289548; --ok-bg:#e3f4e8;
     --blue:#2a6fdb; --blue-bg:#e8f0fd; --violet:#7a5ccf; --violet-bg:#efeafb; --yellow:#e0b400; --yellow-bg:#fdf6d3;
     /* cores dos resultados (validadas para daltonismo na ordem abaixo) */
-    --r-contrato:#289548; --r-proposta:#2a6fdb; --r-outraEmpresa:#ef8a00; --r-fechado:#7a5ccf; --r-naoExiste:#d64545;
+    --r-contrato:#289548; --r-proposta:#2a6fdb; --r-recusou:#c2417a; --r-outraEmpresa:#ef8a00; --r-fechado:#7a5ccf; --r-naoExiste:#d64545;
     --radius:18px; --shadow:0 1px 2px rgba(20,50,30,.06),0 6px 18px rgba(20,50,30,.07);
   }
   *{box-sizing:border-box}
@@ -344,7 +344,7 @@
    ========================================================= */
 const API = 'https://script.google.com/macros/s/AKfycbyKfrfeTPq8MrBbIGsZp54_6l8yPKWDV6omrG7GCBlrfpzkTktzhdd8gUBlSdFivvGU/exec';
 const ATUALIZAR_A_CADA_MIN = 5;
-const VERSAO = '14';
+const VERSAO = '15';
 
 /* ---------- utilidades ---------- */
 const $ = s => document.querySelector(s);
@@ -365,6 +365,7 @@ function toast(m){ const t = $('#toast'); t.textContent = m; t.classList.add('sh
 const RES = [ // ordem fixa (validada): cor segue o resultado, nunca a posição
   { k: 'contrato', txt: 'Contrato fechado' },
   { k: 'proposta', txt: 'Proposta enviada' },
+  { k: 'recusou', txt: 'Cliente recusou a proposta' },
   { k: 'outraEmpresa', txt: 'Atendido por outra empresa' },
   { k: 'fechado', txt: 'Cliente fechado' },
   { k: 'naoExiste', txt: 'Cliente não existe' },
@@ -589,7 +590,8 @@ function normalizar(j){
     situacao: v['Situação'] || 'Aprovado', cadastradoEm: parseD(v['Cadastrado em']), aprovadoEm: parseD(v['Aprovado em']) }));
   const clientes = j.clientes.map(c => ({
     id: c['ID'], vcpf: digits(c['CPF do vendedor']).padStart(11, '0'), vendedor: c['Vendedor'], status: c['Status'],
-    res: RES_POR_TXT[c['Resultado']] || null, nome: c['Nome / Razão social'], cidade: c['Cidade'], bairro: c['Bairro'],
+    res: RES_POR_TXT[c['Resultado']] || null, nome: c['Nome / Razão social'], cidade: c['Cidade'], uf: c['Estado'] || '', bairro: c['Bairro'],
+    motivoRecusa: c['Motivo da recusa'] || '', dRecusa: parseD(c['Data da recusa']),
     modalidade: c['Modalidade'], motivo: c['Motivo da visita'], lat: Number(c['Check-in latitude']) || null, lng: Number(c['Check-in longitude']) || null,
     mapa: c['Mapa do check-in'], fotos: Number(c['Qtde de fotos']) || 0, pasta: c['Pasta de fotos'],
     preco: Number(c['Preço (R$)']) || 0, freq: c['Frequência de coleta'], franquia: c['Franquia (kg/mês)'], excedente: c['Excedente (R$/kg)'],
@@ -963,7 +965,7 @@ function mapa(){
   const pts = clientesF.filter(c => c.res && naSituacao(c) && c.lat && c.lng && dentro(c.dVisita, P.ini, P.fim));
   const css = getComputedStyle(document.documentElement);
   pts.forEach(c => {
-    const k = c.res === 'contrato' || c.res === 'proposta' ? c.res : 'outraEmpresa';
+    const k = c.res === 'contrato' || c.res === 'proposta' || c.res === 'recusou' ? c.res : 'outraEmpresa';
     const cr = css.getPropertyValue('--r-' + k).trim();
     L.circleMarker([c.lat, c.lng], { radius: c.res === 'contrato' ? 9 : 7, color: '#fff', weight: 2, fillColor: cr, fillOpacity: .95 })
       .bindPopup(`<b>${esc(c.nome)}</b><br>${esc(RES.find(r => r.k === c.res).txt)} · ${br(c.dVisita)}<br>Vendedor: ${esc(c.vendedor)}` +
@@ -1150,7 +1152,7 @@ function htmlDetalhe(c, parametros){
       <div class="dhero" style="--st:${corSt}">
         <div><span class="dst"><i></i>${st}</span>${diasProp !== null ? `<span class="age ${diasProp > DIAS_PARADA ? 'critico' : diasProp > 7 ? 'alerta' : ''}">${diasProp === 0 ? 'aberta hoje' : `aberta há ${diasProp} dia${diasProp === 1 ? '' : 's'}`}</span>` : ''}</div>
         <h2>${esc(c.nome)}</h2>
-        <p>${esc([c.cidade, c.bairro].filter(Boolean).join(' · '))}${c.doc ? ' · ' + esc(c.doc) : ''}</p>
+        <p>${esc([c.cidade + (c.uf ? '/' + c.uf : ''), c.bairro].filter(Boolean).join(' · '))}${c.doc ? ' · ' + esc(c.doc) : ''}</p>
         <div class="dacts">
           ${tel ? `<a class="dbtn wa" href="https://wa.me/55${tel}" target="_blank" rel="noopener">💬 WhatsApp</a><a class="dbtn" href="tel:${tel}">📞 Ligar</a>` : ''}
           ${c.email ? `<a class="dbtn" href="mailto:${esc(c.email)}">✉ E-mail</a>` : ''}
@@ -1170,7 +1172,7 @@ function htmlDetalhe(c, parametros){
           <div><small>Valor total do contrato</small><b>${brl(c.preco * (c.vigencia || 12))}</b></div><div><small>Revisões da proposta</small><b>${c.revisoes || 0}</b></div></div></section>` : ''}
         <section class="dcard"><h3>Linha do tempo</h3>
           ${lin('Cadastrado em', br(c.dCadastro))}${lin('Check-in', c.dCheckin ? br(c.dCheckin) + ' ' + c.dCheckin.toTimeString().slice(0, 5) + (c.precisao ? ` (±${c.precisao} m)` : '') : '')}
-          ${lin('Visita finalizada', br(c.dVisita))}${lin('Proposta', br(c.dProposta))}${lin('Contrato fechado', br(c.dContrato))}</section>
+          ${lin('Visita finalizada', br(c.dVisita))}${lin('Proposta', br(c.dProposta))}${lin('Contrato fechado', br(c.dContrato))}${lin('Proposta recusada', br(c.dRecusa))}${lin('Motivo da recusa', esc(c.motivoRecusa))}</section>
         <section class="dcard"><h3>Contato</h3>
           ${lin('Responsável', esc(c.contato))}${lin('Telefone', esc(c.telefone))}${lin('E-mail', esc(c.email))}${lin('Atendimento', esc(c.atendimento))}
           ${lin('Endereço', esc([c.endereco, c.numero].filter(Boolean).join(', ')))}${lin('Cidade', esc(c.cidade))}</section>
