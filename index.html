@@ -243,6 +243,12 @@
   .mrow{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--grid)}
   .mrow span{flex:1} .mrow.mtot{border-top:2px solid var(--line);border-bottom:0;margin-top:6px;padding-top:12px} .mrow input{width:110px;padding:9px 10px;border-radius:10px;border:1.5px solid var(--line);font-size:15px;text-align:right}
   .mact{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+  .imp-drop{display:block;border:2px dashed var(--line);border-radius:14px;padding:22px;text-align:center;cursor:pointer;background:#f7faf5;color:var(--green-d);font-weight:600}
+  .imp-drop:hover{border-color:var(--green)} .imp-drop small{display:block;color:var(--muted);font-weight:500;margin-top:4px}
+  .imp-res{margin-top:14px;font-size:14px} .imp-res .ok{color:var(--green-d);font-weight:700} .imp-res .warn{color:#b86a00;font-weight:600}
+  .imp-tab{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px} .imp-tab th,.imp-tab td{padding:6px 8px;border-bottom:1px solid var(--grid);text-align:left;white-space:nowrap}
+  .imp-tab th{color:var(--muted);font-weight:600;text-transform:uppercase;font-size:11px} .imp-tab td.falta{color:#b86a00}
+  .imp-wrap{max-height:260px;overflow:auto;border:1px solid var(--grid);border-radius:10px;margin-top:8px}
   .btn{padding:11px 18px;border-radius:10px;font-weight:700}
   .btn-green{background:var(--green);color:#fff} .btn-soft{background:#eef3eb;color:var(--green-d)}
   .loading{position:fixed;inset:0;background:rgba(243,246,241,.75);z-index:1500;display:grid;place-items:center;font-weight:600;color:var(--green-d);font-size:16px}
@@ -275,6 +281,7 @@
     <button class="tbtn" onclick="carregar(true, true)">⟳ Atualizar</button>
     <button class="tbtn tbtn-lime" onclick="abrirMetas()">🎯 Definir metas</button>
     <button class="tbtn" onclick="abrirParametros()">⚙ Parâmetros</button>
+    <button class="tbtn" onclick="abrirImportar()">📥 Importar clientes</button>
     <button class="tbtn" onclick="abrirVendedores()">👥 Vendedores <span class="nbadge hidden" id="nPend"></span></button>
     <button class="tbtn" onclick="sair()">Sair</button>
   </div></header>
@@ -344,7 +351,7 @@
    ========================================================= */
 const API = 'https://script.google.com/macros/s/AKfycbyKfrfeTPq8MrBbIGsZp54_6l8yPKWDV6omrG7GCBlrfpzkTktzhdd8gUBlSdFivvGU/exec';
 const ATUALIZAR_A_CADA_MIN = 5;
-const VERSAO = '16';
+const VERSAO = '17';
 
 /* ---------- utilidades ---------- */
 const $ = s => document.querySelector(s);
@@ -917,6 +924,102 @@ function metas(){
       <div class="val">${feitos}/${meta} <span class="chip ${f}">${pct}%</span></div></div>`;
   }).join('') + `<div class="legend"><span><span class="chip s-red">até 50%</span></span><span><span class="chip s-orange">51–88%</span></span><span><span class="chip s-lime">89–99%</span></span><span><span class="chip s-green">100%+</span></span></div>`;
 }
+/* =========================================================
+   IMPORTAR CLIENTES (planilha Excel/CSV → cards "Clientes para Visitar" do vendedor)
+   ========================================================= */
+let xlsxP = null;
+const carregarXLSX = () => window.XLSX ? Promise.resolve() : xlsxP || (xlsxP = new Promise((ok, erro) => { const sc = document.createElement('script'); sc.src = 'xlsx.full.min.js';
+  sc.onload = ok; sc.onerror = () => { xlsxP = null; erro(new Error('Arquivo xlsx.full.min.js não encontrado no site')); }; document.head.appendChild(sc); }));
+const COLS_IMP = [ // campo, rótulo, nomes aceitos no cabeçalho
+  ['nome', 'Nome', ['nome', 'razaosocial', 'nomerazaosocial', 'cliente', 'nomedocliente', 'empresa']],
+  ['endereco', 'Endereço', ['endereco', 'rua', 'logradouro', 'enderecoruaavenida']],
+  ['numero', 'Número', ['numero', 'n', 'no', 'num', 'nro']],
+  ['bairro', 'Bairro', ['bairro']],
+  ['cidade', 'Cidade', ['cidade', 'municipio']],
+  ['estado', 'Estado', ['estado', 'uf']],
+  ['telefone', 'Telefone', ['telefone', 'fone', 'celular', 'whatsapp', 'tel', 'contato']],
+  ['email', 'E-mail', ['email', 'correioeletronico']],
+];
+const UF_NOME = { acre:'AC', alagoas:'AL', amapa:'AP', amazonas:'AM', bahia:'BA', ceara:'CE', distritofederal:'DF', espiritosanto:'ES', goias:'GO', maranhao:'MA', matogrosso:'MT',
+  matogrossodosul:'MS', minasgerais:'MG', para:'PA', paraiba:'PB', parana:'PR', pernambuco:'PE', piaui:'PI', riodejaneiro:'RJ', riograndedonorte:'RN', riograndedosul:'RS',
+  rondonia:'RO', roraima:'RR', santacatarina:'SC', saopaulo:'SP', sergipe:'SE', tocantins:'TO' };
+const chaveCab = t => semAcento(t).replace(/[^a-z0-9]/g, '');
+const foneMask = v => { const d = digits(v).replace(/^55(?=\d{10,11}$)/, ''); if (d.length === 11) return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;
+  if (d.length === 10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`; return String(v || '').trim(); };
+const ufDe = v => { const t = String(v || '').trim(); if (/^[a-z]{2}$/i.test(t)) return t.toUpperCase(); return UF_NOME[chaveCab(t)] || t.toUpperCase().slice(0, 2); };
+function lerPlanilhaClientes(buf){
+  const wb = XLSX.read(buf, { type: 'array' }), ws = wb.Sheets[wb.SheetNames[0]];
+  const linhas = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: '' });
+  // linha de cabeçalho: a primeira (entre as 10 primeiras) com pelo menos 2 colunas reconhecidas
+  let cab = -1, mapa = {};
+  for (let i = 0; i < Math.min(10, linhas.length) && cab < 0; i++) {
+    const m = {}; linhas[i].forEach((t, j) => { const k = chaveCab(t), col = COLS_IMP.find(c => c[2].includes(k)); if (col && m[col[0]] === undefined) m[col[0]] = j; });
+    if (Object.keys(m).length >= 2 && m.nome !== undefined) { cab = i; mapa = m; }
+  }
+  if (cab < 0) throw new Error('Não encontrei o cabeçalho. A 1ª linha precisa ter as colunas Nome, Endereço, Número, Cidade, Estado, Telefone e E-mail.');
+  const clientes = linhas.slice(cab + 1).map(r => { const o = {}; COLS_IMP.forEach(([k]) => o[k] = mapa[k] !== undefined ? String(r[mapa[k]] ?? '').trim() : ''); return o; })
+    .filter(o => Object.values(o).some(Boolean))
+    .map(o => ({ ...o, nome: o.nome.toLocaleUpperCase('pt-BR'), estado: o.estado ? ufDe(o.estado) : '', telefone: o.telefone ? foneMask(o.telefone) : '', email: o.email.toLowerCase() }));
+  const faltam = COLS_IMP.filter(([k]) => k !== 'bairro' && mapa[k] === undefined).map(c => c[1]);
+  return { clientes, faltam };
+}
+function abrirImportar(){
+  const vends = dados.vendedores.filter(v => v.situacao !== 'Bloqueado' && v.nome);
+  const bg = document.createElement('div'); bg.className = 'modal-bg';
+  bg.innerHTML = `<div class="modal modal-lg"><h3>📥 Importar clientes para visitar</h3>
+    <p>Escolha o vendedor e envie a planilha (Excel ou CSV). Cada linha vira um card em <b>Clientes para Visitar</b> no app dele.
+      Colunas: <b>Nome, Endereço, Número, Cidade, Estado, Telefone, E-mail</b> (Bairro é opcional). <a href="#" data-modelo>Baixar planilha modelo</a></p>
+    <div class="pscope"><label>Vendedor</label><select data-vend><option value="">Selecione o vendedor…</option>${vends.map(v => `<option value="${v.cpf}">${esc(v.nome)}${v.situacao === 'Pendente' ? ' (aguardando aprovação)' : ''}</option>`).join('')}</select></div>
+    <label class="imp-drop" style="margin-top:12px">📄 <span data-arqnome>Clique para escolher a planilha</span><small>.xlsx, .xls ou .csv</small>
+      <input type="file" accept=".xlsx,.xls,.csv" data-arq hidden></label>
+    <div class="imp-res" data-res></div>
+    <div class="mact"><button class="btn btn-soft" data-x>Cancelar</button><button class="btn btn-green" data-s disabled>Criar cards</button></div></div>`;
+  document.body.appendChild(bg);
+  let lidos = null;
+  const selV = bg.querySelector('[data-vend]'), btn = bg.querySelector('[data-s]'), res = bg.querySelector('[data-res]');
+  const atualizarBotao = () => { const v = vends.find(x => x.cpf === selV.value), n = lidos ? lidos.clientes.filter(c => c.nome).length : 0;
+    btn.disabled = !(v && n); btn.textContent = v && n ? `Criar ${n} card${n > 1 ? 's' : ''} para ${v.nome.split(' ')[0]}` : 'Criar cards'; };
+  selV.onchange = atualizarBotao;
+  bg.querySelector('[data-x]').onclick = () => bg.remove();
+  bg.onclick = e => { if (e.target === bg) bg.remove(); };
+  bg.querySelector('[data-modelo]').onclick = async e => { e.preventDefault();
+    try { await carregarXLSX(); const ws = XLSX.utils.aoa_to_sheet([COLS_IMP.filter(c => c[0] !== 'bairro').map(c => c[1]),
+      ['PADARIA EXEMPLO LTDA', 'Rua das Flores', '120', 'Ourinhos', 'SP', '(14) 99999-0000', 'contato@exemplo.com.br']]);
+      ws['!cols'] = [{ wch: 30 }, { wch: 28 }, { wch: 8 }, { wch: 18 }, { wch: 8 }, { wch: 16 }, { wch: 28 }];
+      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Clientes'); XLSX.writeFile(wb, 'modelo-importar-clientes.xlsx'); }
+    catch (x) { toast(x.message); } };
+  bg.querySelector('[data-arq]').onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    bg.querySelector('[data-arqnome]').textContent = f.name; res.innerHTML = 'Lendo a planilha…'; lidos = null; atualizarBotao();
+    try {
+      await carregarXLSX(); lidos = lerPlanilhaClientes(await f.arrayBuffer());
+      const cs = lidos.clientes, semNome = cs.filter(c => !c.nome).length, ok = cs.filter(c => c.nome);
+      const incompletos = ok.filter(c => !c.endereco || !c.numero || !c.cidade || !c.estado || !c.telefone || !c.email).length;
+      const col = COLS_IMP.filter(c => c[0] !== 'bairro' || cs.some(x => x.bairro));
+      res.innerHTML = !ok.length ? '<span class="warn">Nenhum cliente com nome encontrado na planilha.</span>' :
+        `<span class="ok">✓ ${ok.length} cliente(s) prontos para importar</span>` +
+        (lidos.faltam.length ? `<br><span class="warn">⚠ Colunas não encontradas: ${lidos.faltam.join(', ')} — o vendedor completa no app.</span>` : '') +
+        (incompletos ? `<br><span class="warn">⚠ ${incompletos} com dados faltando (em laranja) — o vendedor completa no app.</span>` : '') +
+        (semNome ? `<br><span class="warn">${semNome} linha(s) sem nome serão ignoradas.</span>` : '') +
+        `<div class="imp-wrap"><table class="imp-tab"><thead><tr>${col.map(c => `<th>${c[1]}</th>`).join('')}</tr></thead><tbody>` +
+        ok.slice(0, 200).map(c => `<tr>${col.map(([k]) => `<td class="${!c[k] && k !== 'bairro' ? 'falta' : ''}">${c[k] ? esc(c[k]) : (k === 'bairro' ? '' : '—')}</td>`).join('')}</tr>`).join('') +
+        `</tbody></table></div>${ok.length > 200 ? `<small style="color:var(--muted)">Mostrando 200 de ${ok.length}.</small>` : ''}`;
+    } catch (x) { res.innerHTML = `<span class="warn">Não foi possível ler a planilha: ${esc(x.message)}</span>`; }
+    atualizarBotao();
+  };
+  btn.onclick = async () => {
+    const v = vends.find(x => x.cpf === selV.value), lista = lidos.clientes.filter(c => c.nome);
+    if (!v || !lista.length) return;
+    btn.disabled = true; btn.textContent = 'Criando cards…';
+    try {
+      const r = await api('painelImportarClientes', { dados: { cpf: v.cpf, clientes: lista } });
+      bg.remove();
+      toast(`${r.criados} card(s) criado(s) para ${r.vendedor}${r.repetidos ? ` · ${r.repetidos} já existiam e foram ignorados` : ''}. Aparecem no app ao abrir.`);
+      carregar(true);
+    } catch (x) { toast('Erro ao importar: ' + x.message); atualizarBotao(); }
+  };
+}
+
 function abrirMetas(){
   const hoje = new Date(), meses = [];
   for (let i = 0; i <= 12; i++) { const d = new Date(hoje.getFullYear(), hoje.getMonth() + i, 1); meses.push(ymd(d).slice(0, 7)); }
