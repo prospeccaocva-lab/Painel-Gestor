@@ -18,7 +18,7 @@
     --red:#d64545; --red-bg:#fdeaea; --orange:#ef8a00; --orange-bg:#fff1dc; --ok:#289548; --ok-bg:#e3f4e8;
     --blue:#2a6fdb; --blue-bg:#e8f0fd; --violet:#7a5ccf; --violet-bg:#efeafb; --yellow:#e0b400; --yellow-bg:#fdf6d3;
     /* cores dos resultados (validadas para daltonismo na ordem abaixo) */
-    --r-contrato:#289548; --r-proposta:#2a6fdb; --r-recusou:#c2417a; --r-outraEmpresa:#ef8a00; --r-fechado:#7a5ccf; --r-naoExiste:#d64545;
+    --r-contrato:#289548; --r-proposta:#2a6fdb; --r-recusou:#c2417a; --r-outraEmpresa:#ef8a00; --r-fechado:#7a5ccf; --r-naoExiste:#d64545; --r-cobranca:#0a8f9e;
     --radius:18px; --shadow:0 1px 2px rgba(20,50,30,.06),0 6px 18px rgba(20,50,30,.07);
   }
   *{box-sizing:border-box}
@@ -344,7 +344,7 @@
    ========================================================= */
 const API = 'https://script.google.com/macros/s/AKfycbyKfrfeTPq8MrBbIGsZp54_6l8yPKWDV6omrG7GCBlrfpzkTktzhdd8gUBlSdFivvGU/exec';
 const ATUALIZAR_A_CADA_MIN = 5;
-const VERSAO = '15';
+const VERSAO = '16';
 
 /* ---------- utilidades ---------- */
 const $ = s => document.querySelector(s);
@@ -369,6 +369,7 @@ const RES = [ // ordem fixa (validada): cor segue o resultado, nunca a posição
   { k: 'outraEmpresa', txt: 'Atendido por outra empresa' },
   { k: 'fechado', txt: 'Cliente fechado' },
   { k: 'naoExiste', txt: 'Cliente não existe' },
+  { k: 'cobranca', txt: 'Cobrança' },
 ];
 const RES_POR_TXT = Object.fromEntries(RES.map(r => [r.txt, r.k]));
 const cor = k => `var(--r-${k})`;
@@ -965,7 +966,7 @@ function mapa(){
   const pts = clientesF.filter(c => c.res && naSituacao(c) && c.lat && c.lng && dentro(c.dVisita, P.ini, P.fim));
   const css = getComputedStyle(document.documentElement);
   pts.forEach(c => {
-    const k = c.res === 'contrato' || c.res === 'proposta' || c.res === 'recusou' ? c.res : 'outraEmpresa';
+    const k = ['contrato', 'proposta', 'recusou', 'cobranca'].includes(c.res) ? c.res : 'outraEmpresa';
     const cr = css.getPropertyValue('--r-' + k).trim();
     L.circleMarker([c.lat, c.lng], { radius: c.res === 'contrato' ? 9 : 7, color: '#fff', weight: 2, fillColor: cr, fillOpacity: .95 })
       .bindPopup(`<b>${esc(c.nome)}</b><br>${esc(RES.find(r => r.k === c.res).txt)} · ${br(c.dVisita)}<br>Vendedor: ${esc(c.vendedor)}` +
